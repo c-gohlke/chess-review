@@ -11,3 +11,7 @@ Beginners lose most of their games to the same handful of errors: hanging a piec
 3. Classify each mistake into a beginner-friendly theme.
 4. Aggregate across games to surface the patterns you repeat.
 5. Generate puzzles from those positions and schedule them for review.
+
+## License
+
+AGPL-3.0. See [LICENSE](LICENSE).
