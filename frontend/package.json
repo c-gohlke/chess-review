@@ -8,7 +8,8 @@
 		"build": "tsc -b && vite build",
 		"lint": "biome check",
 		"format": "biome check --write",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"test:e2e": "playwright test"
 	},
 	"dependencies": {
 		"@tailwindcss/vite": "^4.3.3",
@@ -20,6 +21,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.12",
+		"@playwright/test": "^1.63.0",
 		"@types/node": "^24.13.3",
 		"@types/react": "^19.2.18",
 		"@types/react-dom": "^19.2.4",
