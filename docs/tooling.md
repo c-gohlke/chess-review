@@ -23,7 +23,7 @@ Tests are split by what they need:
 
 | Tool | Role |
 |------|------|
-| pnpm | Package management. |
+| npm | Package management. |
 | Biome | Linter and formatter in one tool. |
 | TypeScript strict | Type checking. |
 | Vitest | Unit tests for non-UI logic. |
