@@ -19,8 +19,10 @@ export function Board() {
 
 	return (
 		<div className="mx-auto w-full max-w-[600px]">
-			{game.isCheckmate() && (
+			{game.isCheckmate() ? (
 				<div className="mb-2 rounded bg-red-600 py-2 text-center font-bold text-white">Checkmate</div>
+			) : (
+				<h2 className="mb-2 text-center font-semibold">{game.turn() === "w" ? "White" : "Black"} to move</h2>
 			)}
 			<Chessboard options={{ id: "board", position: fen, onPieceDrop }} />
 		</div>
