@@ -1,5 +1,11 @@
+import { Board } from "./board/Board";
+
 function App() {
-	return <h1 className="p-4 text-2xl font-semibold">chess-review</h1>;
+	return (
+		<main className="p-4">
+			<Board />
+		</main>
+	);
 }
 
 export default App;
