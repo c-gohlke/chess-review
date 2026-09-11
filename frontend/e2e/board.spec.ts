@@ -1,15 +1,5 @@
 import { expect, test } from "@playwright/test";
-
-async function drag(page: import("@playwright/test").Page, from: string, to: string) {
-	const source = page.locator(`[data-square="${from}"]`);
-	const target = page.locator(`[data-square="${to}"]`);
-	await source.hover();
-	await page.mouse.down();
-	const box = await target.boundingBox();
-	if (!box) throw new Error(`square ${to} not visible`);
-	await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 10 });
-	await page.mouse.up();
-}
+import { drag } from "./drag";
 
 test("board renders and accepts a legal move", async ({ page }) => {
 	await page.goto("/");
