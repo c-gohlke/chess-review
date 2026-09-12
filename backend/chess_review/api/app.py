@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -16,4 +17,4 @@ def create_app(static_dir: Path) -> FastAPI:
 
 
 def create_default_app() -> FastAPI:
-    return create_app(Path("../frontend/dist"))
+    return create_app(Path(os.environ["CHESS_REVIEW_STATIC_DIR"]))
