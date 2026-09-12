@@ -27,7 +27,7 @@ def test_list_games_returns_newest_first(client: TestClient) -> None:
             "black": "alice",
             "result": "loss",
             "time_class": "rapid",
-            "played_at": "2023-11-15T22:13:20+00:00",
+            "played_at": "2023-11-15T22:13:20Z",
         },
         {
             "id": 1,
@@ -35,7 +35,7 @@ def test_list_games_returns_newest_first(client: TestClient) -> None:
             "black": "bob",
             "result": "win",
             "time_class": "blitz",
-            "played_at": "2023-11-14T22:13:20+00:00",
+            "played_at": "2023-11-14T22:13:20Z",
         },
     ]
 
@@ -50,7 +50,7 @@ def test_get_game_returns_pgn(client: TestClient) -> None:
         "black": "bob",
         "result": "win",
         "time_class": "blitz",
-        "played_at": "2023-11-14T22:13:20+00:00",
+        "played_at": "2023-11-14T22:13:20Z",
         "pgn": "1. e4 e5",
     }
 

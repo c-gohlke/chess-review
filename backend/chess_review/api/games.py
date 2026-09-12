@@ -1,11 +1,12 @@
 import sqlite3
 from collections.abc import Generator
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from chess_review.db import connect, get_game, list_games
+from chess_review.db import Result, connect, get_game, list_games
 from chess_review.importers.chesscom import import_games
 
 router = APIRouter()
@@ -13,11 +14,11 @@ router = APIRouter()
 
 class GameSummary(BaseModel):
     id: int
-    white: str | None
-    black: str | None
-    result: str | None
-    time_class: str | None
-    played_at: str | None
+    white: str
+    black: str
+    result: Result
+    time_class: str
+    played_at: datetime
 
 
 class GameDetail(GameSummary):

@@ -1,5 +1,7 @@
 import sqlite3
 from dataclasses import dataclass
+from datetime import datetime
+from enum import StrEnum
 from pathlib import Path
 
 SCHEMA = """
@@ -8,14 +10,20 @@ CREATE TABLE IF NOT EXISTS games (
     source TEXT NOT NULL,
     source_id TEXT NOT NULL UNIQUE,
     username TEXT NOT NULL,
-    white TEXT,
-    black TEXT,
-    result TEXT,
-    time_class TEXT,
-    played_at TEXT,
+    white TEXT NOT NULL,
+    black TEXT NOT NULL,
+    result TEXT NOT NULL,
+    time_class TEXT NOT NULL,
+    played_at TEXT NOT NULL,
     pgn TEXT NOT NULL
 )
 """
+
+
+class Result(StrEnum):
+    WIN = "win"
+    LOSS = "loss"
+    DRAW = "draw"
 
 
 @dataclass(frozen=True)
@@ -23,11 +31,11 @@ class Game:
     source: str
     source_id: str
     username: str
-    white: str | None
-    black: str | None
-    result: str | None
-    time_class: str | None
-    played_at: str | None
+    white: str
+    black: str
+    result: Result
+    time_class: str
+    played_at: datetime
     pgn: str
     id: int | None = None
 
@@ -55,9 +63,9 @@ def insert_games(conn: sqlite3.Connection, games: list[Game]) -> int:
                 "username": game.username,
                 "white": game.white,
                 "black": game.black,
-                "result": game.result,
+                "result": game.result.value,
                 "time_class": game.time_class,
-                "played_at": game.played_at,
+                "played_at": game.played_at.isoformat(),
                 "pgn": game.pgn,
             }
             for game in games
@@ -75,9 +83,9 @@ def _row_to_game(row: sqlite3.Row) -> Game:
         username=row["username"],
         white=row["white"],
         black=row["black"],
-        result=row["result"],
+        result=Result(row["result"]),
         time_class=row["time_class"],
-        played_at=row["played_at"],
+        played_at=datetime.fromisoformat(row["played_at"]),
         pgn=row["pgn"],
     )
 

@@ -1,7 +1,8 @@
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
-from chess_review.db import Game
+from chess_review.db import Game, Result
 from chess_review.importers.chesscom import parse_game
 
 FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "chesscom_month.json").read_text())
@@ -17,9 +18,9 @@ def test_parse_win_as_white() -> None:
         username="alice",
         white="alice",
         black="bobcat",
-        result="win",
+        result=Result.WIN,
         time_class="blitz",
-        played_at="2023-11-14T22:13:20+00:00",
+        played_at=datetime(2023, 11, 14, 22, 13, 20, tzinfo=UTC),
         pgn=GAMES[0]["pgn"],
     )
 
@@ -30,7 +31,7 @@ def test_parse_loss_as_black_is_case_insensitive() -> None:
     assert game is not None
     assert game.white == "carla"
     assert game.black == "Alice"
-    assert game.result == "loss"
+    assert game.result == Result.LOSS
     assert game.username == "alice"
 
 
@@ -38,7 +39,7 @@ def test_parse_draw() -> None:
     game = parse_game(GAMES[2], "alice")
 
     assert game is not None
-    assert game.result == "draw"
+    assert game.result == Result.DRAW
     assert game.time_class == "blitz"
 
 

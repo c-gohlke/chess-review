@@ -5,7 +5,7 @@ from typing import Any
 import httpx2
 from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
-from chess_review.db import Game, insert_games
+from chess_review.db import Game, Result, insert_games
 
 API = "https://api.chess.com/pub/player"
 # Chess.com rejects requests without a descriptive User-Agent.
@@ -39,13 +39,13 @@ def parse_game(raw: dict[str, Any], username: str) -> Game | None:
         own, opponent = black, white
 
     if own["result"] == "win":
-        result = "win"
+        result = Result.WIN
     elif opponent["result"] == "win":
-        result = "loss"
+        result = Result.LOSS
     else:
-        result = "draw"
+        result = Result.DRAW
 
-    played_at = datetime.fromtimestamp(raw["end_time"], tz=UTC).isoformat()
+    played_at = datetime.fromtimestamp(raw["end_time"], tz=UTC)
 
     return Game(
         source="chesscom",
