@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync --locked
+      - name: Ruff check
+        working-directory: backend
+        run: uv run ruff check .
+      - name: Ruff format check
+        working-directory: backend
+        run: uv run ruff format --check .
+      - name: MyPy
+        working-directory: backend
+        run: uv run mypy .
+      - name: Pytest
+        working-directory: backend
+        run: uv run pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: E2E tests
+        working-directory: frontend
+        run: npm run test:e2e
+
+  openapi-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install backend dependencies
+        working-directory: backend
+        run: uv sync --locked
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Regenerate API types
+        working-directory: frontend
+        run: npm run generate-api
+      - name: Check for drift
+        run: git diff --exit-code -- frontend/openapi.json frontend/src/api/schema.d.ts
