@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+/* No fallback on purpose: with --piece-scale unset the transform computes to `none`, so idle pieces
+   render exactly as before instead of through a scale(1) layer. */
+[data-piece] {
+	transform: scale(var(--piece-scale));
+}
+
+[data-piece]:hover {
+	--piece-scale: 1.2;
+}

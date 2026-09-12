@@ -12,5 +12,7 @@ test("checkmate shows the banner", async ({ page }) => {
 	await drag(page, "d8", "h4");
 
 	await expect(page.getByText("Checkmate")).toBeVisible();
+	// The pointer is still over the queen, and a hovered piece is enlarged.
+	await page.mouse.move(0, 0);
 	await expect(page.locator("main")).toHaveScreenshot("checkmate.png");
 });

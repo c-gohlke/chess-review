@@ -1,8 +1,10 @@
 import { Chess, type Square } from "chess.js";
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { Chessboard } from "react-chessboard";
 
 const LEGAL_MOVE_STYLE = { background: "radial-gradient(circle, rgba(0,0,0,0.2) 25%, transparent 26%)" };
+// Read by the piece's transform in index.css; the square is the closest element we can style.
+const SELECTED_PIECE_STYLE = { "--piece-scale": "1.2" } as CSSProperties;
 
 export function Board() {
 	const [game] = useState(() => new Chess());
@@ -11,6 +13,10 @@ export function Board() {
 
 	function legalMoveSquares(square: Square): Square[] {
 		return game.moves({ square, verbose: true }).map((move) => move.to);
+	}
+
+	function selectIfMovable(square: string) {
+		if (legalMoveSquares(square as Square).length > 0) setSelectedSquare(square as Square);
 	}
 
 	function onPieceDrop({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) {
@@ -34,15 +40,18 @@ export function Board() {
 				// not a legal move for the selected piece; fall through to reselect below
 			}
 			setSelectedSquare(null);
-			if (legalMoveSquares(square as Square).length > 0) setSelectedSquare(square as Square);
+			selectIfMovable(square);
 			return;
 		}
 
-		if (legalMoveSquares(square as Square).length > 0) setSelectedSquare(square as Square);
+		selectIfMovable(square);
 	}
 
 	const squareStyles = selectedSquare
-		? Object.fromEntries(legalMoveSquares(selectedSquare).map((square) => [square, LEGAL_MOVE_STYLE]))
+		? {
+				...Object.fromEntries(legalMoveSquares(selectedSquare).map((square) => [square, LEGAL_MOVE_STYLE])),
+				[selectedSquare]: SELECTED_PIECE_STYLE,
+			}
 		: {};
 
 	return (
@@ -52,7 +61,19 @@ export function Board() {
 			) : (
 				<h2 className="mb-2 text-center font-semibold">{game.turn() === "w" ? "White" : "Black"} to move</h2>
 			)}
-			<Chessboard options={{ id: "board", position: fen, onPieceDrop, onSquareClick, squareStyles }} />
+			<Chessboard
+				options={{
+					id: "board",
+					position: fen,
+					onPieceDrop,
+					onSquareClick,
+					onSquareMouseDown: ({ square }) => selectIfMovable(square),
+					onPieceDrag: ({ square }) => {
+						if (square !== null) selectIfMovable(square);
+					},
+					squareStyles,
+				}}
+			/>
 		</div>
 	);
 }
