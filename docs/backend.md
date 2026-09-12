@@ -11,7 +11,7 @@ Python 3.12+, one package under `backend/`.
 | python-chess | PGN parsing, board state, move generation, UCI engine driver. |
 | Stockfish | Position evaluation. Run as a subprocess through python-chess's UCI interface. |
 | SQLite | Storage for imported games, analysed mistakes and puzzle schedule. Single file, no server. |
-| httpx | Client for the Lichess and Chess.com APIs. |
+| httpx2 | Client for the Lichess and Chess.com APIs. |
 
 ## Modules
 
