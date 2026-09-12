@@ -5,11 +5,11 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.34",
+    "httpx2>=0.28",
 ]
 
 [dependency-groups]
 dev = [
-    "httpx2>=0.28",
     "pytest>=8.3",
     "ruff>=0.9",
     "mypy>=1.14",
@@ -25,14 +25,21 @@ packages = ["chess_review"]
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's Depends() must be called in argument defaults; that's the framework's own idiom.
+"chess_review/api/games.py" = ["B008"]
+
 [tool.mypy]
 strict = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests/unit"]
 filterwarnings = [
     "error",
     # Starlette 1.6.0 uses a deprecated anyio alias in testclient.py; fixed upstream on main.
     # Remove this line once a Starlette release after 1.6.0 is in uv.lock.
     "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning:starlette.testclient",
+]
+markers = [
+    "integration: requires a real Stockfish binary or network access to Lichess/Chess.com",
 ]

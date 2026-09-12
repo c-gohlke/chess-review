@@ -49,3 +49,14 @@ uv run --directory backend pytest
 `CHESS_REVIEW_STATIC_DIR` is the built frontend, served at `/`; it must exist, so run
 `npm run build` in `frontend/` once before starting the backend. During frontend work, use the Vite
 dev server on top of that; it proxies `/api`.
+`CHESS_REVIEW_DB` points at the SQLite file to use and defaults to `data/chess-review.sqlite3`.
+
+## API
+
+| Route | Description |
+|-------|-------------|
+| `POST /api/import/chesscom/{username}` | Import all of a Chess.com user's games, returns the number newly stored. |
+| `GET /api/games` | List stored games, newest first. |
+| `GET /api/games/{game_id}` | Get one game, including its PGN. |
+
+Regenerate the OpenAPI schema with `uv run --directory backend python -m chess_review.api.openapi`.
