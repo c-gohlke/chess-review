@@ -11,8 +11,8 @@ Same rules on both sides: one linter, one formatter, strict types, tests that as
 | MyPy strict | Type checking. No untyped code merged. |
 | pytest | Test runner. |
 | freezegun | Time control for scheduling tests. |
-| httpx2 | HTTP client for Chess.com and for FastAPI's TestClient. |
-| tenacity | Retry decorator for flaky Chess.com requests, instead of hand-written retry loops. |
+| httpx2 | HTTP client. |
+| tenacity | Retries. |
 
 Tests are split by what they need:
 
