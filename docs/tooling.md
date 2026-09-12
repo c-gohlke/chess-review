@@ -32,6 +32,12 @@ Tests are split by what they need:
 | Playwright | End-to-end tests, run at both a desktop and a phone viewport. |
 | openapi-typescript | Generates TypeScript types from the backend's OpenAPI schema so the two sides cannot drift. |
 
+## Deployment
+
+| Tool | Role |
+|------|------|
+| Docker | Single image that builds the frontend and runs the backend serving it, so the app deploys as one unit. |
+
 ## Shared
 
 The OpenAPI schema is the contract. CI regenerates the frontend types from the backend and fails

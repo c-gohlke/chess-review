@@ -39,6 +39,15 @@ frontend/   Vite project
 docs/       this folder
 ```
 
+## Run with Docker
+
+```
+docker build -t chess-review .
+docker run --rm -p 8000:8000 -v chess-review-data:/data chess-review
+```
+
+The named volume holds the SQLite database, so games persist across container restarts.
+
 ## Principles
 
 - The backend owns all chess logic. The frontend never evaluates positions; it only validates
