@@ -37,7 +37,7 @@ def make_client(tmp_path: Path) -> TestClient:
         ],
     )
     conn.close()
-    return TestClient(create_app(tmp_path, db_path=db_path))
+    return TestClient(create_app(tmp_path, db_path))
 
 
 def test_list_games_returns_newest_first(tmp_path: Path) -> None:

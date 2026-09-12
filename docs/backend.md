@@ -42,6 +42,7 @@ per position and never recomputed.
 
 ```
 export CHESS_REVIEW_STATIC_DIR=$PWD/frontend/dist
+export CHESS_REVIEW_DB=$PWD/data/chess-review.sqlite3
 uv run --directory backend uvicorn chess_review.api.app:create_app_from_env --factory --reload
 uv run --directory backend pytest
 ```
@@ -49,7 +50,7 @@ uv run --directory backend pytest
 `CHESS_REVIEW_STATIC_DIR` is the built frontend, served at `/`; it must exist, so run
 `npm run build` in `frontend/` once before starting the backend. During frontend work, use the Vite
 dev server on top of that; it proxies `/api`.
-`CHESS_REVIEW_DB` points at the SQLite file to use and defaults to `data/chess-review.sqlite3`.
+`CHESS_REVIEW_DB` is the SQLite file; it is created on first use.
 
 ## API
 
