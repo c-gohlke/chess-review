@@ -26,6 +26,13 @@ class Result(StrEnum):
     DRAW = "draw"
 
 
+class TimeClass(StrEnum):
+    DAILY = "daily"
+    RAPID = "rapid"
+    BLITZ = "blitz"
+    BULLET = "bullet"
+
+
 @dataclass(frozen=True)
 class Game:
     source: str
@@ -34,7 +41,7 @@ class Game:
     white: str
     black: str
     result: Result
-    time_class: str
+    time_class: TimeClass
     played_at: datetime
     pgn: str
     id: int | None = None
@@ -64,7 +71,7 @@ def insert_games(conn: sqlite3.Connection, games: list[Game]) -> int:
                 "white": game.white,
                 "black": game.black,
                 "result": game.result.value,
-                "time_class": game.time_class,
+                "time_class": game.time_class.value,
                 "played_at": game.played_at.isoformat(),
                 "pgn": game.pgn,
             }
@@ -84,7 +91,7 @@ def _row_to_game(row: sqlite3.Row) -> Game:
         white=row["white"],
         black=row["black"],
         result=Result(row["result"]),
-        time_class=row["time_class"],
+        time_class=TimeClass(row["time_class"]),
         played_at=datetime.fromisoformat(row["played_at"]),
         pgn=row["pgn"],
     )

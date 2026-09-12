@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from chess_review.db import Game, Result
+from chess_review.db import Game, Result, TimeClass
 
 
 @pytest.fixture
@@ -14,7 +14,7 @@ def game_1() -> Game:
         white="alice",
         black="bob",
         result=Result.WIN,
-        time_class="blitz",
+        time_class=TimeClass.BLITZ,
         played_at=datetime(2023, 11, 14, 22, 13, 20, tzinfo=UTC),
         pgn="1. e4 e5",
     )
@@ -29,7 +29,7 @@ def game_2() -> Game:
         white="carla",
         black="alice",
         result=Result.LOSS,
-        time_class="rapid",
+        time_class=TimeClass.RAPID,
         played_at=datetime(2023, 11, 15, 22, 13, 20, tzinfo=UTC),
         pgn="1. d4 d5",
     )

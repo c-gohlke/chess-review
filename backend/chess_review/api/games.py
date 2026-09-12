@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from chess_review.db import Result, connect, get_game, list_games
+from chess_review.db import Result, TimeClass, connect, get_game, list_games
 from chess_review.importers.chesscom import import_games
 
 router = APIRouter()
@@ -17,7 +17,7 @@ class GameSummary(BaseModel):
     white: str
     black: str
     result: Result
-    time_class: str
+    time_class: TimeClass
     played_at: datetime
 
 
