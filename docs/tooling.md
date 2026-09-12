@@ -37,6 +37,7 @@ Tests are split by what they need:
 | Tool | Role |
 |------|------|
 | Docker | Single image that builds the frontend and runs the backend serving it, so the app deploys as one unit. |
+| Tailscale | Private network between the Mac running the container and the phone, so nothing is exposed publicly. |
 
 ## Shared
 
