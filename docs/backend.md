@@ -41,7 +41,8 @@ per position and never recomputed.
 ## Run
 
 ```
-CHESS_REVIEW_STATIC_DIR=$PWD/frontend/dist uv run --directory backend uvicorn chess_review.api.app:create_default_app --factory --reload
+export CHESS_REVIEW_STATIC_DIR=$PWD/frontend/dist
+uv run --directory backend uvicorn chess_review.api.app:create_app_from_env --factory --reload
 uv run --directory backend pytest
 ```
 

@@ -12,9 +12,9 @@ def create_app(static_dir: Path) -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+    app.mount("/", StaticFiles(directory=static_dir, html=True))
     return app
 
 
-def create_default_app() -> FastAPI:
+def create_app_from_env() -> FastAPI:
     return create_app(Path(os.environ["CHESS_REVIEW_STATIC_DIR"]))
