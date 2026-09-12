@@ -41,6 +41,11 @@ per position and never recomputed.
 ## Run
 
 ```
-uv run --directory backend uvicorn chess_review.api.app:create_app --factory --reload
+export CHESS_REVIEW_STATIC_DIR=$PWD/frontend/dist
+uv run --directory backend uvicorn chess_review.api.app:create_app_from_env --factory --reload
 uv run --directory backend pytest
 ```
+
+`CHESS_REVIEW_STATIC_DIR` is the built frontend, served at `/`; it must exist, so run
+`npm run build` in `frontend/` once before starting the backend. During frontend work, use the Vite
+dev server on top of that; it proxies `/api`.
