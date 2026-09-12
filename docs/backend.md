@@ -41,14 +41,9 @@ per position and never recomputed.
 ## Run
 
 ```
-uv run --directory backend uvicorn chess_review.api.app:create_app --factory --reload
+uv run --directory backend uvicorn chess_review.api.app:create_default_app --factory --reload
 uv run --directory backend pytest
 ```
 
-In production:
-
-```
-CHESS_REVIEW_STATIC_DIR=frontend/dist uv run --directory backend uvicorn chess_review.api.app:create_app --factory
-```
-
-`CHESS_REVIEW_STATIC_DIR` points at the built frontend and is unset in development.
+The app serves `frontend/dist` at `/`, so run `npm run build` in `frontend/` once before starting
+the backend. During frontend work, use the Vite dev server on top of that; it proxies `/api`.
