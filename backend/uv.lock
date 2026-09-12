@@ -121,7 +121,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
-    { name = "httpx2", specifier = ">=0.28" },
+    { name = "httpx2", specifier = ">=2.12" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34" },
 ]
 
