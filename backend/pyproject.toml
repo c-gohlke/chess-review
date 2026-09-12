@@ -25,10 +25,6 @@ packages = ["chess_review"]
 [tool.ruff]
 line-length = 120
 
-[tool.ruff.lint.per-file-ignores]
-# FastAPI's Depends() must be called in argument defaults; that's the framework's own idiom.
-"chess_review/api/games.py" = ["B008"]
-
 [tool.mypy]
 strict = true
 

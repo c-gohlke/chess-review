@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import UTC, datetime
+from typing import Any
 
 import httpx2
 
@@ -29,16 +30,15 @@ def archive_urls(client: httpx2.Client, username: str) -> list[str]:
     return urls
 
 
-def parse_game(raw: dict[str, object], username: str) -> Game | None:
+def parse_game(raw: dict[str, Any], username: str) -> Game | None:
     pgn = raw.get("pgn")
     if not pgn or raw.get("rules") != "chess":
         return None
 
     white = raw["white"]
     black = raw["black"]
-    assert isinstance(white, dict) and isinstance(black, dict)
 
-    if str(white["username"]).lower() == username.lower():
+    if white["username"].lower() == username.lower():
         own, opponent = white, black
     else:
         own, opponent = black, white
@@ -50,20 +50,18 @@ def parse_game(raw: dict[str, object], username: str) -> Game | None:
     else:
         result = "draw"
 
-    end_time = raw["end_time"]
-    assert isinstance(end_time, int)
-    played_at = datetime.fromtimestamp(end_time, tz=UTC).isoformat()
+    played_at = datetime.fromtimestamp(raw["end_time"], tz=UTC).isoformat()
 
     return Game(
         source="chesscom",
-        source_id=str(raw["url"]),
+        source_id=raw["url"],
         username=username.lower(),
-        white=str(white["username"]),
-        black=str(black["username"]),
+        white=white["username"],
+        black=black["username"],
         result=result,
-        time_class=str(raw["time_class"]),
+        time_class=raw["time_class"],
         played_at=played_at,
-        pgn=str(pgn),
+        pgn=pgn,
     )
 
 

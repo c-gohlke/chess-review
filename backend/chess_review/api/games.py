@@ -1,5 +1,6 @@
 import sqlite3
 from collections.abc import Generator
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
@@ -35,19 +36,22 @@ def get_db(request: Request) -> Generator[sqlite3.Connection, None, None]:
         conn.close()
 
 
+Db = Annotated[sqlite3.Connection, Depends(get_db)]
+
+
 @router.post("/api/import/chesscom/{username}")
-def import_chesscom(username: str, conn: sqlite3.Connection = Depends(get_db)) -> ImportResult:
+def import_chesscom(username: str, conn: Db) -> ImportResult:
     return ImportResult(imported=import_games(conn, username))
 
 
 @router.get("/api/games")
-def get_games(conn: sqlite3.Connection = Depends(get_db)) -> list[GameSummary]:
-    return [GameSummary(**vars(game)) for game in list_games(conn)]
+def get_games(conn: Db) -> list[GameSummary]:
+    return [GameSummary.model_validate(game, from_attributes=True) for game in list_games(conn)]
 
 
 @router.get("/api/games/{game_id}")
-def get_game_detail(game_id: int, conn: sqlite3.Connection = Depends(get_db)) -> GameDetail:
+def get_game_detail(game_id: int, conn: Db) -> GameDetail:
     game = get_game(conn, game_id)
     if game is None:
         raise HTTPException(status_code=404, detail="game not found")
-    return GameDetail(**vars(game))
+    return GameDetail.model_validate(game, from_attributes=True)
