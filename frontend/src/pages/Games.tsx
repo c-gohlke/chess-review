@@ -49,7 +49,7 @@ export function Games({ onSelect }: { onSelect: (id: number) => void }) {
 							className="w-full rounded border px-4 py-2 text-left"
 							onClick={() => onSelect(game.id)}
 						>
-							{game.white} vs {game.black} — {game.result} — {game.time_class} — {game.played_at?.slice(0, 10)}
+							{game.white} vs {game.black} — {game.result} — {game.time_class} — {game.played_at.slice(0, 10)}
 						</button>
 					</li>
 				))}

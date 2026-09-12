@@ -137,58 +137,22 @@
             "title": "Id"
           },
           "white": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "White"
           },
           "black": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Black"
           },
           "result": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Result"
+            "$ref": "#/components/schemas/Result"
           },
           "time_class": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Time Class"
+            "$ref": "#/components/schemas/TimeClass"
           },
           "played_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "format": "date-time",
             "title": "Played At"
           },
           "pgn": {
@@ -215,58 +179,22 @@
             "title": "Id"
           },
           "white": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "White"
           },
           "black": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Black"
           },
           "result": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Result"
+            "$ref": "#/components/schemas/Result"
           },
           "time_class": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Time Class"
+            "$ref": "#/components/schemas/TimeClass"
           },
           "played_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "format": "date-time",
             "title": "Played At"
           }
         },
@@ -306,6 +234,25 @@
           "imported"
         ],
         "title": "ImportResult"
+      },
+      "Result": {
+        "type": "string",
+        "enum": [
+          "win",
+          "loss",
+          "draw"
+        ],
+        "title": "Result"
+      },
+      "TimeClass": {
+        "type": "string",
+        "enum": [
+          "daily",
+          "rapid",
+          "blitz",
+          "bullet"
+        ],
+        "title": "TimeClass"
       },
       "ValidationError": {
         "properties": {

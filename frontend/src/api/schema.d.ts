@@ -81,15 +81,16 @@ export interface components {
             /** Id */
             id: number;
             /** White */
-            white: string | null;
+            white: string;
             /** Black */
-            black: string | null;
-            /** Result */
-            result: string | null;
-            /** Time Class */
-            time_class: string | null;
-            /** Played At */
-            played_at: string | null;
+            black: string;
+            result: components["schemas"]["Result"];
+            time_class: components["schemas"]["TimeClass"];
+            /**
+             * Played At
+             * Format: date-time
+             */
+            played_at: string;
             /** Pgn */
             pgn: string;
         };
@@ -98,15 +99,16 @@ export interface components {
             /** Id */
             id: number;
             /** White */
-            white: string | null;
+            white: string;
             /** Black */
-            black: string | null;
-            /** Result */
-            result: string | null;
-            /** Time Class */
-            time_class: string | null;
-            /** Played At */
-            played_at: string | null;
+            black: string;
+            result: components["schemas"]["Result"];
+            time_class: components["schemas"]["TimeClass"];
+            /**
+             * Played At
+             * Format: date-time
+             */
+            played_at: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -118,6 +120,16 @@ export interface components {
             /** Imported */
             imported: number;
         };
+        /**
+         * Result
+         * @enum {string}
+         */
+        Result: "win" | "loss" | "draw";
+        /**
+         * TimeClass
+         * @enum {string}
+         */
+        TimeClass: "daily" | "rapid" | "blitz" | "bullet";
         /** ValidationError */
         ValidationError: {
             /** Location */
