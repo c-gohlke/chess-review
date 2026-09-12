@@ -38,8 +38,11 @@ Tests are split by what they need:
 |------|------|
 | Docker | Single image that builds the frontend and runs the backend serving it, so the app deploys as one unit. |
 | Tailscale | Private network between the Mac running the container and the phone, so nothing is exposed publicly. |
+| GitHub Actions | Runs every check on pushes and pull requests. |
 
 ## Shared
 
 The OpenAPI schema is the contract. CI regenerates the frontend types from the backend and fails
-if the result differs from what is committed, so the two sides cannot drift.
+if the result differs from what is committed, so the two sides cannot drift. CI runs on GitHub
+Actions (`.github/workflows/ci.yml`): backend checks, frontend checks including Playwright, and
+the OpenAPI drift check.
