@@ -27,7 +27,7 @@ frontend/src/
 
 Plain `fetch` through the generated types. Each page loads what it needs on mount and holds it in
 component state. No data-fetching library; revisit only if caching or background refetching
-becomes a real problem.
+becomes a real problem. The dev server proxies `/api` to the backend on port 8000.
 
 ## Styling
 

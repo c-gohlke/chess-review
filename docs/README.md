@@ -20,6 +20,9 @@ The frontend is a single responsive web app. It runs in desktop browsers and on 
 separate mobile codebase. If store distribution is ever needed, the same app can be wrapped with
 Capacitor; nothing in the current design depends on that.
 
+In production the backend also serves the built frontend, so there is a single process and a
+single origin.
+
 ## Documents
 
 | File | Covers |

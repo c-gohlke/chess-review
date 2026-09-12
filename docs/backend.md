@@ -44,3 +44,11 @@ per position and never recomputed.
 uv run --directory backend uvicorn chess_review.api.app:create_app --factory --reload
 uv run --directory backend pytest
 ```
+
+In production:
+
+```
+CHESS_REVIEW_STATIC_DIR=frontend/dist uv run --directory backend uvicorn chess_review.api.app:create_app --factory
+```
+
+`CHESS_REVIEW_STATIC_DIR` points at the built frontend and is unset in development.
