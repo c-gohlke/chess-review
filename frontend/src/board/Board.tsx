@@ -20,6 +20,7 @@ export function Board() {
 	}
 
 	function onPieceDrop({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) {
+		setSelectedSquare(null);
 		if (targetSquare === null) return false;
 		try {
 			game.move({ from: sourceSquare, to: targetSquare, promotion: "q" });
@@ -27,7 +28,6 @@ export function Board() {
 			return false;
 		}
 		setFen(game.fen());
-		setSelectedSquare(null);
 		return true;
 	}
 
@@ -71,6 +71,8 @@ export function Board() {
 					onPieceDrag: ({ square }) => {
 						if (square !== null) selectIfMovable(square);
 					},
+					onPieceDragCancel: () => setSelectedSquare(null),
+					onSquareRightClick: () => setSelectedSquare(null),
 					squareStyles,
 				}}
 			/>
