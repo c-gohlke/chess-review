@@ -7,10 +7,11 @@ Python 3.12+, one package under `backend/`.
 | Tool | Role |
 |------|------|
 | FastAPI | HTTP API. Serves the OpenAPI schema the frontend client is generated from. |
+| uvicorn | ASGI server that runs the FastAPI app. |
 | python-chess | PGN parsing, board state, move generation, UCI engine driver. |
 | Stockfish | Position evaluation. Run as a subprocess through python-chess's UCI interface. |
 | SQLite | Storage for imported games, analysed mistakes and puzzle schedule. Single file, no server. |
-| httpx | Client for the Lichess and Chess.com APIs. |
+| httpx2 | Client for the Lichess and Chess.com APIs. |
 
 ## Modules
 
@@ -36,3 +37,10 @@ mocks.
 Stockfish is a required external binary. Its path comes from an environment variable read at
 startup, never at import time. Analysis is the slow part of the system, so results are stored
 per position and never recomputed.
+
+## Run
+
+```
+uv run --directory backend uvicorn chess_review.api.app:create_app --factory --reload
+uv run --directory backend pytest
+```

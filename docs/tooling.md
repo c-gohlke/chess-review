@@ -11,6 +11,7 @@ Same rules on both sides: one linter, one formatter, strict types, tests that as
 | MyPy strict | Type checking. No untyped code merged. |
 | pytest | Test runner. |
 | freezegun | Time control for scheduling tests. |
+| httpx2 | HTTP client used by FastAPI's TestClient. |
 
 Tests are split by what they need:
 
