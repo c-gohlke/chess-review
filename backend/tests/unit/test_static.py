@@ -11,7 +11,7 @@ def test_serves_static_files_with_api_precedence(tmp_path: Path) -> None:
     assets_dir.mkdir()
     (assets_dir / "app.js").write_text("console.log('app');")
 
-    client = TestClient(create_app(tmp_path))
+    client = TestClient(create_app(tmp_path, tmp_path / "db.sqlite3"))
 
     index_response = client.get("/")
     assert index_response.status_code == 200

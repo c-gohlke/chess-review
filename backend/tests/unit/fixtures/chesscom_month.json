@@ -1,0 +1,40 @@
+{
+  "games": [
+    {
+      "url": "https://www.chess.com/game/live/1000000001",
+      "pgn": "[Event \"Live Chess\"]\n[White \"alice\"]\n[Black \"bobcat\"]\n[Result \"1-0\"]\n1. e4 e5 2. Nf3 Nc6 3. Bb5 1-0\n",
+      "time_class": "blitz",
+      "end_time": 1700000000,
+      "rules": "chess",
+      "white": {"username": "alice", "rating": 1200, "result": "win"},
+      "black": {"username": "bobcat", "rating": 1180, "result": "checkmated"}
+    },
+    {
+      "url": "https://www.chess.com/game/live/1000000002",
+      "pgn": "[Event \"Live Chess\"]\n[White \"carla\"]\n[Black \"Alice\"]\n[Result \"1-0\"]\n1. d4 d5 2. c4 e6 3. Nc3 Nf6 1-0\n",
+      "time_class": "rapid",
+      "end_time": 1700003600,
+      "rules": "chess",
+      "white": {"username": "carla", "rating": 1300, "result": "win"},
+      "black": {"username": "Alice", "rating": 1250, "result": "resigned"}
+    },
+    {
+      "url": "https://www.chess.com/game/live/1000000003",
+      "pgn": "[Event \"Live Chess\"]\n[White \"alice\"]\n[Black \"davis\"]\n[Result \"1/2-1/2\"]\n1. Nf3 Nf6 2. c4 g6 1/2-1/2\n",
+      "time_class": "blitz",
+      "end_time": 1700007200,
+      "rules": "chess",
+      "white": {"username": "alice", "rating": 1210, "result": "agreed"},
+      "black": {"username": "davis", "rating": 1220, "result": "agreed"}
+    },
+    {
+      "url": "https://www.chess.com/game/live/1000000004",
+      "pgn": "[Event \"Live Chess\"]\n[White \"alice\"]\n[Black \"eve\"]\n[Result \"1-0\"]\n1. e4 {960 start} 1-0\n",
+      "time_class": "blitz",
+      "end_time": 1700010800,
+      "rules": "chess960",
+      "white": {"username": "alice", "rating": 1215, "result": "win"},
+      "black": {"username": "eve", "rating": 1190, "result": "checkmated"}
+    }
+  ]
+}

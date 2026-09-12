@@ -4,9 +4,13 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from chess_review.api.games import router as games_router
 
-def create_app(static_dir: Path) -> FastAPI:
+
+def create_app(static_dir: Path, db_path: Path) -> FastAPI:
     app = FastAPI()
+    app.include_router(games_router)
+    app.state.db_path = db_path
 
     @app.get("/api/health")
     def health() -> dict[str, str]:
@@ -17,4 +21,4 @@ def create_app(static_dir: Path) -> FastAPI:
 
 
 def create_app_from_env() -> FastAPI:
-    return create_app(Path(os.environ["CHESS_REVIEW_STATIC_DIR"]))
+    return create_app(Path(os.environ["CHESS_REVIEW_STATIC_DIR"]), Path(os.environ["CHESS_REVIEW_DB"]))
