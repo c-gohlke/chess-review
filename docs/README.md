@@ -30,6 +30,7 @@ single origin.
 | [backend.md](backend.md) | Python runtime: API, chess analysis, engine, storage |
 | [frontend.md](frontend.md) | Web app: framework, styling, board, API client |
 | [tooling.md](tooling.md) | Linting, formatting, type checking, testing on both sides |
+| [hosting.md](hosting.md) | Running the app on the developer's Mac and reaching it from a phone over Tailscale |
 
 ## Repository layout
 
