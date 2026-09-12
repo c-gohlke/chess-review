@@ -1,3 +1,5 @@
 CLAUDE.md
 .claude/
 data/
+.mypy_cache/
+.ruff_cache/
