@@ -45,5 +45,6 @@ uv run --directory backend uvicorn chess_review.api.app:create_default_app --fac
 uv run --directory backend pytest
 ```
 
-The app serves `frontend/dist` at `/`, so run `npm run build` in `frontend/` once before starting
-the backend. During frontend work, use the Vite dev server on top of that; it proxies `/api`.
+The app serves `../frontend/dist` (relative to `backend/`, where uvicorn runs) at `/`, so run
+`npm run build` in `frontend/` once before starting the backend. During frontend work, use the Vite
+dev server on top of that; it proxies `/api`.

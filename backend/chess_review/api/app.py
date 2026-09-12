@@ -3,8 +3,6 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-FRONTEND_DIST = Path(__file__).resolve().parents[3] / "frontend" / "dist"
-
 
 def create_app(static_dir: Path) -> FastAPI:
     app = FastAPI()
@@ -18,4 +16,4 @@ def create_app(static_dir: Path) -> FastAPI:
 
 
 def create_default_app() -> FastAPI:
-    return create_app(FRONTEND_DIST)
+    return create_app(Path("../frontend/dist"))
