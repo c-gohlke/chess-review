@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx2
+from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
 from chess_review.db import Game, insert_games
 
@@ -11,18 +12,12 @@ API = "https://api.chess.com/pub/player"
 HEADERS = {"User-Agent": "chess-review (https://github.com/c-gohlke/chess-review)"}
 
 
+# The API occasionally stalls on a single request; one retry is enough in practice.
+@retry(retry=retry_if_exception_type(httpx2.TimeoutException), stop=stop_after_attempt(2), reraise=True)
 def get(client: httpx2.Client, url: str) -> httpx2.Response:
-    # The API occasionally stalls on a single request; one retry is enough in practice.
-    for attempt in range(2):
-        try:
-            response = client.get(url)
-        except httpx2.TimeoutException:
-            if attempt == 1:
-                raise
-            continue
-        response.raise_for_status()
-        return response
-    raise AssertionError("unreachable")
+    response = client.get(url)
+    response.raise_for_status()
+    return response
 
 
 def archive_urls(client: httpx2.Client, username: str) -> list[str]:

@@ -6,6 +6,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.34",
     "httpx2>=2.12",
+    "tenacity>=9.1.4",
 ]
 
 [dependency-groups]
