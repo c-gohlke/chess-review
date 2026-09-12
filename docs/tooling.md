@@ -30,6 +30,7 @@ Tests are split by what they need:
 | TypeScript strict | Type checking. |
 | Vitest | Unit tests for non-UI logic. |
 | Playwright | End-to-end tests, run at both a desktop and a phone viewport. |
+| openapi-typescript | Generates TypeScript types from the backend's OpenAPI schema so the two sides cannot drift. |
 
 ## Shared
 
