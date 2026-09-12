@@ -19,4 +19,4 @@ ENV CHESS_REVIEW_STATIC_DIR=/app/static
 ENV CHESS_REVIEW_DB=/data/chess-review.sqlite3
 VOLUME /data
 EXPOSE 8000
-CMD ["uv", "run", "--no-sync", "uvicorn", "chess_review.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "--no-sync", "uvicorn", "chess_review.api.app:create_app_from_env", "--factory", "--host", "0.0.0.0", "--port", "8000"]
