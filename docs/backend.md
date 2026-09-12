@@ -52,12 +52,4 @@ uv run --directory backend pytest
 dev server on top of that; it proxies `/api`.
 `CHESS_REVIEW_DB` is the SQLite file; it is created on first use.
 
-## API
-
-| Route | Description |
-|-------|-------------|
-| `POST /api/import/chesscom/{username}` | Import all of a Chess.com user's games, returns the number newly stored. |
-| `GET /api/games` | List stored games, newest first. |
-| `GET /api/games/{game_id}` | Get one game, including its PGN. |
-
-Regenerate the OpenAPI schema with `uv run --directory backend python -m chess_review.api.openapi`.
+The API is documented by the running server at `/docs`.
