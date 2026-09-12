@@ -21,7 +21,8 @@ def get(client: httpx2.Client, url: str) -> httpx2.Response:
 
 
 def archive_urls(client: httpx2.Client, username: str) -> list[str]:
-    urls: list[str] = get(client, f"{API}/{username}/games/archives").json()["archives"]
+    # Chess.com only serves lowercase usernames; other casings get a 301 that httpx2 does not follow.
+    urls: list[str] = get(client, f"{API}/{username.lower()}/games/archives").json()["archives"]
     return urls
 
 
