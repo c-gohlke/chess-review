@@ -10,22 +10,27 @@ from chess_review.patterns.openings import Colour, OpeningSummary, colour_played
 router = APIRouter()
 
 
-def _filtered_games(conn: sqlite3.Connection, since: AwareDatetime | None, time_class: TimeClass | None) -> list[Game]:
+def _filtered_games(
+    conn: sqlite3.Connection, username: str, since: AwareDatetime | None, time_class: TimeClass | None
+) -> list[Game]:
     return [
         game
-        for game in list_games(conn)
+        for game in list_games(conn, username)
         if (since is None or game.played_at >= since) and (time_class is None or game.time_class == time_class)
     ]
 
 
 @router.get("/api/openings")
-def get_openings(conn: Db, since: AwareDatetime | None = None, time_class: TimeClass | None = None) -> OpeningSummary:
-    return summarize_openings(_filtered_games(conn, since, time_class))
+def get_openings(
+    conn: Db, username: str, since: AwareDatetime | None = None, time_class: TimeClass | None = None
+) -> OpeningSummary:
+    return summarize_openings(_filtered_games(conn, username, since, time_class))
 
 
 @router.get("/api/openings/games")
 def get_opening_games(
     conn: Db,
+    username: str,
     family: str,
     variation: str,
     colour: Colour,
@@ -34,6 +39,6 @@ def get_opening_games(
 ) -> list[GameListItem]:
     return [
         list_item(conn, game)
-        for game in _filtered_games(conn, since, time_class)
+        for game in _filtered_games(conn, username, since, time_class)
         if colour_played(game) == colour and parse_opening(game.pgn) == (family, variation)
     ]

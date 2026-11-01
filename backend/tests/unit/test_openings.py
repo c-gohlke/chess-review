@@ -95,14 +95,14 @@ def client(tmp_path: Path, game_1: Game, game_2: Game) -> TestClient:
 def test_openings_endpoint_filters_games(
     client: TestClient, params: dict[str, str], white: list[str], black: list[str]
 ) -> None:
-    summary = client.get("/api/openings", params=params).json()
+    summary = client.get("/api/openings", params={"username": "alice", **params}).json()
 
     assert [family["name"] for family in summary["white"]] == white
     assert [family["name"] for family in summary["black"]] == black
 
 
 def opening_game_ids(client: TestClient, **params: str) -> list[int]:
-    response = client.get("/api/openings/games", params=params)
+    response = client.get("/api/openings/games", params={"username": "alice", **params})
     assert response.status_code == 200
     return [game["id"] for game in response.json()]
 
@@ -138,10 +138,26 @@ def test_opening_games_use_the_same_filters_as_the_summary(client: TestClient) -
     assert opening_game_ids(client, **french, since="2023-11-16T00:00:00Z") == []
 
 
+def test_openings_only_count_the_requested_player(tmp_path: Path, game_1: Game) -> None:
+    db_path = tmp_path / "db.sqlite3"
+    conn = connect(db_path)
+    french = pgn("French-Defense")
+    other_player = replace(game_1, source_id="bob-game", username="bob", white="bob", pgn=french)
+    insert_games(conn, [replace(game_1, pgn=french), other_player])
+    conn.close()
+    client = TestClient(create_app(tmp_path, db_path, Path("stockfish")))
+
+    summary = client.get("/api/openings", params={"username": "alice"}).json()
+    params = {"family": "French Defense", "variation": NO_VARIATION, "colour": "white"}
+
+    assert summary["white"][0]["games"] == 1
+    assert opening_game_ids(client, **params) == [1]
+
+
 def test_opening_games_rows_match_the_games_list(client: TestClient) -> None:
     params = {"family": "Italian Game", "variation": NO_VARIATION, "colour": "white"}
 
-    [game] = client.get("/api/openings/games", params=params).json()
+    [game] = client.get("/api/openings/games", params={"username": "alice", **params}).json()
 
     assert game["opening"] == "Italian Game"
     assert game["white"] == "alice"
@@ -149,7 +165,8 @@ def test_opening_games_rows_match_the_games_list(client: TestClient) -> None:
 
 
 def test_openings_endpoint_rejects_since_without_timezone(client: TestClient) -> None:
-    assert client.get("/api/openings", params={"since": "2023-11-15T00:00:00"}).status_code == 422
+    params = {"username": "alice", "since": "2023-11-15T00:00:00"}
+    assert client.get("/api/openings", params=params).status_code == 422
 
 
 def test_openings_endpoint_returns_summary(tmp_path: Path, game_1: Game) -> None:
@@ -158,7 +175,8 @@ def test_openings_endpoint_returns_summary(tmp_path: Path, game_1: Game) -> None
     insert_games(conn, [replace(game_1, pgn=pgn("French-Defense"))])
     conn.close()
 
-    response = TestClient(create_app(tmp_path, db_path, Path("stockfish"))).get("/api/openings")
+    client = TestClient(create_app(tmp_path, db_path, Path("stockfish")))
+    response = client.get("/api/openings", params={"username": "alice"})
 
     assert response.status_code == 200
     variation = {

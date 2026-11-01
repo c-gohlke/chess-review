@@ -3,6 +3,8 @@ import { expect, type Page, test } from "@playwright/test";
 // "3 months ago" is computed in local time, so a daylight saving change would shift the expected instant.
 test.use({ timezoneId: "UTC" });
 
+test.beforeEach(({ page }) => page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] })));
+
 const stats = { draws: 0, variations: [] };
 
 const OPENINGS = {

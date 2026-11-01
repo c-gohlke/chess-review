@@ -13,8 +13,14 @@ async function checkOk(response: Response): Promise<Response> {
 	return response;
 }
 
-export async function listGames(limit: number, offset: number): Promise<GameListItem[]> {
-	const response = await checkOk(await fetch(`/api/games?limit=${limit}&offset=${offset}`));
+export async function listUsers(): Promise<string[]> {
+	const response = await checkOk(await fetch("/api/users"));
+	return response.json();
+}
+
+export async function listGames(username: string, limit: number, offset: number): Promise<GameListItem[]> {
+	const params = new URLSearchParams({ username, limit: String(limit), offset: String(offset) });
+	const response = await checkOk(await fetch(`/api/games?${params}`));
 	return response.json();
 }
 
@@ -28,26 +34,31 @@ export async function getEvaluation(fen: string): Promise<Evaluation> {
 	return response.json();
 }
 
-function filterParams(since: Date | null, timeClass: TimeClass | null): URLSearchParams {
-	const params = new URLSearchParams();
+function filterParams(username: string, since: Date | null, timeClass: TimeClass | null): URLSearchParams {
+	const params = new URLSearchParams({ username });
 	if (since) params.set("since", since.toISOString());
 	if (timeClass) params.set("time_class", timeClass);
 	return params;
 }
 
-export async function getOpenings(since: Date | null, timeClass: TimeClass | null): Promise<OpeningSummary> {
-	const response = await checkOk(await fetch(`/api/openings?${filterParams(since, timeClass)}`));
+export async function getOpenings(
+	username: string,
+	since: Date | null,
+	timeClass: TimeClass | null,
+): Promise<OpeningSummary> {
+	const response = await checkOk(await fetch(`/api/openings?${filterParams(username, since, timeClass)}`));
 	return response.json();
 }
 
 export async function getOpeningGames(
+	username: string,
 	family: string,
 	variation: string,
 	colour: Colour,
 	since: Date | null,
 	timeClass: TimeClass | null,
 ): Promise<GameListItem[]> {
-	const params = filterParams(since, timeClass);
+	const params = filterParams(username, since, timeClass);
 	params.set("family", family);
 	params.set("variation", variation);
 	params.set("colour", colour);
