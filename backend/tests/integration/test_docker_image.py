@@ -6,6 +6,7 @@ reuse the Docker layer cache.
 
 from pathlib import Path
 
+import chess
 import httpx2
 import pytest
 from testcontainers.core.config import testcontainers_config
@@ -35,7 +36,10 @@ def test_image_boots_and_serves_app() -> None:
             health = client.get("/api/health")
             index = client.get("/")
             games = client.get("/api/games")
+            evaluation = client.get("/api/evaluation", params={"fen": chess.STARTING_FEN}, timeout=30)
 
+    assert evaluation.status_code == 200
+    assert evaluation.json()["cp"] is not None
     assert health.status_code == 200
     assert health.json() == {"status": "ok"}
     assert index.status_code == 200

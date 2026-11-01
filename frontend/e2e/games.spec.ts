@@ -10,6 +10,7 @@ const GAME_DETAIL = { ...GAMES[0], pgn: "1. e4 e5 2. Nf3 Nc6" };
 test("games list, selecting a game, and navigating moves", async ({ page }) => {
 	await page.route("**/api/games", (route) => route.fulfill({ json: GAMES }));
 	await page.route("**/api/games/1", (route) => route.fulfill({ json: GAME_DETAIL }));
+	await page.route("**/api/evaluation?*", (route) => route.fulfill({ json: { cp: 20, mate: null } }));
 
 	await page.goto("/");
 	await page.getByRole("button", { name: "Games" }).click();

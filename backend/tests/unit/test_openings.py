@@ -80,7 +80,7 @@ def client(tmp_path: Path, game_1: Game, game_2: Game) -> TestClient:
     conn = connect(db_path)
     insert_games(conn, [replace(game_1, pgn=pgn("Italian-Game")), replace(game_2, pgn=pgn("French-Defense"))])
     conn.close()
-    return TestClient(create_app(tmp_path, db_path))
+    return TestClient(create_app(tmp_path, db_path, Path("stockfish")))
 
 
 @pytest.mark.parametrize(
@@ -111,7 +111,7 @@ def test_openings_endpoint_returns_summary(tmp_path: Path, game_1: Game) -> None
     insert_games(conn, [replace(game_1, pgn=pgn("French-Defense"))])
     conn.close()
 
-    response = TestClient(create_app(tmp_path, db_path)).get("/api/openings")
+    response = TestClient(create_app(tmp_path, db_path, Path("stockfish"))).get("/api/openings")
 
     assert response.status_code == 200
     variation = {

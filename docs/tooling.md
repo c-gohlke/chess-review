@@ -13,6 +13,8 @@ Same rules on both sides: one linter, one formatter, strict types, tests that as
 | freezegun | Time control for scheduling tests. |
 | httpx2 | HTTP client. |
 | tenacity | Retries. |
+| python-chess | Validates positions and drives Stockfish over UCI. |
+| Stockfish | Chess engine that evaluates positions when replaying a game. Install with `brew install stockfish`. |
 
 Tests are split by what they need:
 

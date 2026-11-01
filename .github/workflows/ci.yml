@@ -77,6 +77,7 @@ jobs:
         env:
           CHESS_REVIEW_STATIC_DIR: ${{ runner.temp }}
           CHESS_REVIEW_DB: ${{ runner.temp }}/chess-review.sqlite3
+          CHESS_REVIEW_STOCKFISH: stockfish
         run: npm run generate-api
       - name: Check for drift
         run: git diff --exit-code -- frontend/openapi.json frontend/src/api/schema.d.ts

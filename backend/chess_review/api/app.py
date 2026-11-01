@@ -4,15 +4,18 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from chess_review.api.evaluation import router as evaluation_router
 from chess_review.api.games import router as games_router
 from chess_review.api.openings import router as openings_router
 
 
-def create_app(static_dir: Path, db_path: Path) -> FastAPI:
+def create_app(static_dir: Path, db_path: Path, stockfish_path: Path) -> FastAPI:
     app = FastAPI()
     app.include_router(games_router)
     app.include_router(openings_router)
+    app.include_router(evaluation_router)
     app.state.db_path = db_path
+    app.state.stockfish_path = stockfish_path
 
     @app.get("/api/health")
     def health() -> dict[str, str]:
@@ -23,4 +26,8 @@ def create_app(static_dir: Path, db_path: Path) -> FastAPI:
 
 
 def create_app_from_env() -> FastAPI:
-    return create_app(Path(os.environ["CHESS_REVIEW_STATIC_DIR"]), Path(os.environ["CHESS_REVIEW_DB"]))
+    return create_app(
+        Path(os.environ["CHESS_REVIEW_STATIC_DIR"]),
+        Path(os.environ["CHESS_REVIEW_DB"]),
+        Path(os.environ["CHESS_REVIEW_STOCKFISH"]),
+    )

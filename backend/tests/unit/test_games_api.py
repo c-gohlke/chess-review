@@ -13,7 +13,7 @@ def client(tmp_path: Path, game_1: Game, game_2: Game) -> TestClient:
     conn = connect(db_path)
     insert_games(conn, [game_1, game_2])
     conn.close()
-    return TestClient(create_app(tmp_path, db_path))
+    return TestClient(create_app(tmp_path, db_path, Path("stockfish")))
 
 
 def test_list_games_returns_newest_first(client: TestClient) -> None:

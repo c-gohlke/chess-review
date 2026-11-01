@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/evaluation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Position Evaluation */
+        get: operations["get_position_evaluation_api_evaluation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -93,6 +110,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * Evaluation
+         * @description From White's point of view. Exactly one of the two is set; mate 0 means the position is checkmate.
+         */
+        Evaluation: {
+            /** Cp */
+            cp: number | null;
+            /** Mate */
+            mate: number | null;
+        };
         /** GameDetail */
         GameDetail: {
             /** Id */
@@ -294,6 +321,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OpeningSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_position_evaluation_api_evaluation_get: {
+        parameters: {
+            query: {
+                fen: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Evaluation"];
                 };
             };
             /** @description Validation Error */

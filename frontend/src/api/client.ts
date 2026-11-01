@@ -2,6 +2,7 @@ import type { components } from "./schema";
 
 export type GameSummary = components["schemas"]["GameSummary"];
 export type GameDetail = components["schemas"]["GameDetail"];
+export type Evaluation = components["schemas"]["Evaluation"];
 export type OpeningStats = components["schemas"]["OpeningStats"];
 export type OpeningSummary = components["schemas"]["OpeningSummary"];
 export type TimeClass = components["schemas"]["TimeClass"];
@@ -18,6 +19,11 @@ export async function listGames(): Promise<GameSummary[]> {
 
 export async function getGame(id: number): Promise<GameDetail> {
 	const response = await checkOk(await fetch(`/api/games/${id}`));
+	return response.json();
+}
+
+export async function getEvaluation(fen: string): Promise<Evaluation> {
+	const response = await checkOk(await fetch(`/api/evaluation?${new URLSearchParams({ fen })}`));
 	return response.json();
 }
 
