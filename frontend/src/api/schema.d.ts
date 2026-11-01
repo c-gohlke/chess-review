@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/openings/games": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Opening Games */
+        get: operations["get_opening_games_api_openings_games_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/evaluation": {
         parameters: {
             query?: never;
@@ -337,6 +354,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OpeningSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_opening_games_api_openings_games_get: {
+        parameters: {
+            query: {
+                family: string;
+                variation: string;
+                colour: "white" | "black";
+                since?: string | null;
+                time_class?: components["schemas"]["TimeClass"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameListItem"][];
                 };
             };
             /** @description Validation Error */

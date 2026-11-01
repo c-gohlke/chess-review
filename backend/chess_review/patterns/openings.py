@@ -1,8 +1,11 @@
 import re
 from collections import defaultdict
 from dataclasses import dataclass
+from typing import Literal
 
 from chess_review.db import Game, Result
+
+Colour = Literal["white", "black"]
 
 NO_VARIATION = "No named variation"
 UNKNOWN_OPENING = "Unknown opening"
@@ -40,6 +43,10 @@ class OpeningStats:
 class OpeningSummary:
     white: list[OpeningStats]
     black: list[OpeningStats]
+
+
+def colour_played(game: Game) -> Colour:
+    return "white" if game.white.lower() == game.username else "black"
 
 
 def parse_opening(pgn: str) -> tuple[str, str]:
@@ -91,6 +98,6 @@ def _families(games: list[Game]) -> list[OpeningStats]:
 
 
 def summarize_openings(games: list[Game]) -> OpeningSummary:
-    as_white = [game for game in games if game.white.lower() == game.username]
-    as_black = [game for game in games if game.white.lower() != game.username]
+    as_white = [game for game in games if colour_played(game) == "white"]
+    as_black = [game for game in games if colour_played(game) == "black"]
     return OpeningSummary(white=_families(as_white), black=_families(as_black))

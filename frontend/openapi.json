@@ -201,6 +201,104 @@
         }
       }
     },
+    "/api/openings/games": {
+      "get": {
+        "summary": "Get Opening Games",
+        "operationId": "get_opening_games_api_openings_games_get",
+        "parameters": [
+          {
+            "name": "family",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Family"
+            }
+          },
+          {
+            "name": "variation",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Variation"
+            }
+          },
+          {
+            "name": "colour",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "white",
+                "black"
+              ],
+              "type": "string",
+              "title": "Colour"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          },
+          {
+            "name": "time_class",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TimeClass"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Class"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GameListItem"
+                  },
+                  "title": "Response Get Opening Games Api Openings Games Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/evaluation": {
       "get": {
         "summary": "Get Position Evaluation",

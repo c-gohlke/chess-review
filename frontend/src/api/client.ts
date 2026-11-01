@@ -6,6 +6,7 @@ export type Evaluation = components["schemas"]["Evaluation"];
 export type OpeningStats = components["schemas"]["OpeningStats"];
 export type OpeningSummary = components["schemas"]["OpeningSummary"];
 export type TimeClass = components["schemas"]["TimeClass"];
+export type Colour = "white" | "black";
 
 async function checkOk(response: Response): Promise<Response> {
 	if (!response.ok) throw new Error(`request failed with status ${response.status}`);
@@ -27,11 +28,30 @@ export async function getEvaluation(fen: string): Promise<Evaluation> {
 	return response.json();
 }
 
-export async function getOpenings(since: Date | null, timeClass: TimeClass | null): Promise<OpeningSummary> {
+function filterParams(since: Date | null, timeClass: TimeClass | null): URLSearchParams {
 	const params = new URLSearchParams();
 	if (since) params.set("since", since.toISOString());
 	if (timeClass) params.set("time_class", timeClass);
-	const response = await checkOk(await fetch(`/api/openings?${params}`));
+	return params;
+}
+
+export async function getOpenings(since: Date | null, timeClass: TimeClass | null): Promise<OpeningSummary> {
+	const response = await checkOk(await fetch(`/api/openings?${filterParams(since, timeClass)}`));
+	return response.json();
+}
+
+export async function getOpeningGames(
+	family: string,
+	variation: string,
+	colour: Colour,
+	since: Date | null,
+	timeClass: TimeClass | null,
+): Promise<GameListItem[]> {
+	const params = filterParams(since, timeClass);
+	params.set("family", family);
+	params.set("variation", variation);
+	params.set("colour", colour);
+	const response = await checkOk(await fetch(`/api/openings/games?${params}`));
 	return response.json();
 }
 

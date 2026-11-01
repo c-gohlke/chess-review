@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
-import { getOpenings, type OpeningStats, type OpeningSummary, type TimeClass } from "../api/client";
+import {
+	type Colour,
+	type GameListItem,
+	getOpeningGames,
+	getOpenings,
+	type OpeningStats,
+	type OpeningSummary,
+	type TimeClass,
+} from "../api/client";
+import { GameRow } from "../components/GameRow";
 
-type Colour = "white" | "black";
+type Filters = { colour: Colour; months: string; timeClass: TimeClass | "" };
 
 const COLOUR_LABELS: Record<Colour, string> = { white: "White", black: "Black" };
 
@@ -66,7 +75,63 @@ function OpeningRow({ opening }: { opening: OpeningStats }) {
 	);
 }
 
-function FamilyRow({ family }: { family: OpeningStats }) {
+function VariationRow({
+	family,
+	variation,
+	filters: { colour, months, timeClass },
+	onSelect,
+}: {
+	family: string;
+	variation: OpeningStats;
+	filters: Filters;
+	onSelect: (id: number) => void;
+}) {
+	const [open, setOpen] = useState(false);
+	const [games, setGames] = useState<GameListItem[]>([]);
+	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!open) return;
+		// A slower, older request must not overwrite the result of the latest filters.
+		let stale = false;
+		getOpeningGames(family, variation.name, colour, monthsAgo(months), timeClass || null)
+			.then((result) => {
+				if (!stale) setGames(result);
+			})
+			.catch((err: Error) => setError(err.message));
+		return () => {
+			stale = true;
+		};
+	}, [open, family, variation.name, colour, months, timeClass]);
+
+	return (
+		<li>
+			<button type="button" className="min-h-11 w-full text-left" aria-expanded={open} onClick={() => setOpen(!open)}>
+				<OpeningRow opening={variation} />
+			</button>
+			{open && (
+				<ul className="mt-3 flex flex-col gap-2 pl-3">
+					{error && <li className="text-red-600">{error}</li>}
+					{games.map((game) => (
+						<li key={game.id}>
+							<GameRow game={game} onSelect={onSelect} />
+						</li>
+					))}
+				</ul>
+			)}
+		</li>
+	);
+}
+
+function FamilyRow({
+	family,
+	filters,
+	onSelect,
+}: {
+	family: OpeningStats;
+	filters: Filters;
+	onSelect: (id: number) => void;
+}) {
 	const [open, setOpen] = useState(false);
 	return (
 		<li className="border-t">
@@ -81,9 +146,13 @@ function FamilyRow({ family }: { family: OpeningStats }) {
 			{open && (
 				<ul className="mb-3 flex flex-col gap-3 rounded bg-blue-50 p-3">
 					{family.variations.map((variation) => (
-						<li key={variation.name}>
-							<OpeningRow opening={variation} />
-						</li>
+						<VariationRow
+							key={variation.name}
+							family={family.name}
+							variation={variation}
+							filters={filters}
+							onSelect={onSelect}
+						/>
 					))}
 				</ul>
 			)}
@@ -91,7 +160,7 @@ function FamilyRow({ family }: { family: OpeningStats }) {
 	);
 }
 
-export function Openings() {
+export function Openings({ onSelect }: { onSelect: (id: number) => void }) {
 	const [summary, setSummary] = useState<OpeningSummary | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [colour, setColour] = useState<Colour>("white");
@@ -163,7 +232,12 @@ export function Openings() {
 			{summary && openings.length === 0 && <p>No games for these filters</p>}
 			<ul className="flex flex-col">
 				{repeated.map((family) => (
-					<FamilyRow key={family.name} family={family} />
+					<FamilyRow
+						key={`${colour}-${family.name}`}
+						family={family}
+						filters={{ colour, months, timeClass }}
+						onSelect={onSelect}
+					/>
 				))}
 				{once.length > 0 && (
 					<li className="border-t py-3 text-sm text-gray-600">
