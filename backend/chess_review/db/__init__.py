@@ -24,6 +24,13 @@ CREATE TABLE IF NOT EXISTS evaluations (
     mate INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS position_analyses (
+    position TEXT PRIMARY KEY,
+    cp INTEGER,
+    mate INTEGER,
+    pv TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS games_by_rating_pool ON games (username, time_class, played_at);
 """
 
@@ -61,6 +68,16 @@ class Evaluation:
 
     cp: int | None
     mate: int | None
+
+
+@dataclass(frozen=True)
+class PositionAnalysis:
+    """A fast engine pass, from White's point of view. `pv` is space-separated UCI moves, best move first."""
+
+    position: str
+    cp: int | None
+    mate: int | None
+    pv: str
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -157,5 +174,22 @@ def insert_evaluation(conn: sqlite3.Connection, position: str, evaluation: Evalu
     conn.execute(
         "INSERT OR IGNORE INTO evaluations (position, cp, mate) VALUES (?, ?, ?)",
         (position, evaluation.cp, evaluation.mate),
+    )
+    conn.commit()
+
+
+def stored_positions(conn: sqlite3.Connection) -> set[str]:
+    return {row["position"] for row in conn.execute("SELECT position FROM position_analyses")}
+
+
+def load_position_analyses(conn: sqlite3.Connection) -> dict[str, PositionAnalysis]:
+    rows = conn.execute("SELECT position, cp, mate, pv FROM position_analyses")
+    return {row["position"]: PositionAnalysis(row["position"], row["cp"], row["mate"], row["pv"]) for row in rows}
+
+
+def insert_position_analyses(conn: sqlite3.Connection, analyses: list[PositionAnalysis]) -> None:
+    conn.executemany(
+        "INSERT OR IGNORE INTO position_analyses (position, cp, mate, pv) VALUES (?, ?, ?, ?)",
+        [(analysis.position, analysis.cp, analysis.mate, analysis.pv) for analysis in analyses],
     )
     conn.commit()
