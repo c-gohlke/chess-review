@@ -105,6 +105,24 @@
         }
       }
     },
+    "/api/openings": {
+      "get": {
+        "summary": "Get Openings",
+        "operationId": "get_openings_api_openings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Health",
@@ -234,6 +252,76 @@
           "imported"
         ],
         "title": "ImportResult"
+      },
+      "OpeningStats": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          },
+          "wins": {
+            "type": "integer",
+            "title": "Wins"
+          },
+          "draws": {
+            "type": "integer",
+            "title": "Draws"
+          },
+          "losses": {
+            "type": "integer",
+            "title": "Losses"
+          },
+          "net": {
+            "type": "number",
+            "title": "Net"
+          },
+          "variations": {
+            "items": {
+              "$ref": "#/components/schemas/OpeningStats"
+            },
+            "type": "array",
+            "title": "Variations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "games",
+          "wins",
+          "draws",
+          "losses",
+          "net",
+          "variations"
+        ],
+        "title": "OpeningStats"
+      },
+      "OpeningSummary": {
+        "properties": {
+          "white": {
+            "items": {
+              "$ref": "#/components/schemas/OpeningStats"
+            },
+            "type": "array",
+            "title": "White"
+          },
+          "black": {
+            "items": {
+              "$ref": "#/components/schemas/OpeningStats"
+            },
+            "type": "array",
+            "title": "Black"
+          }
+        },
+        "type": "object",
+        "required": [
+          "white",
+          "black"
+        ],
+        "title": "OpeningSummary"
       },
       "Result": {
         "type": "string",

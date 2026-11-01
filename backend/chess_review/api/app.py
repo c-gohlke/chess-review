@@ -5,11 +5,13 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from chess_review.api.games import router as games_router
+from chess_review.api.openings import router as openings_router
 
 
 def create_app(static_dir: Path, db_path: Path) -> FastAPI:
     app = FastAPI()
     app.include_router(games_router)
+    app.include_router(openings_router)
     app.state.db_path = db_path
 
     @app.get("/api/health")

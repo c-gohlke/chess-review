@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Board } from "./board/Board";
 import { Games } from "./pages/Games";
+import { Openings } from "./pages/Openings";
 import { Review } from "./pages/Review";
 
-type Tab = "play" | "games";
+type Tab = "play" | "games" | "openings";
 
 function App() {
 	const [tab, setTab] = useState<Tab>("play");
@@ -29,10 +30,18 @@ function App() {
 				>
 					Games
 				</button>
+				<button
+					type="button"
+					className={`rounded px-4 py-2 ${tab === "openings" ? "bg-blue-600 text-white" : "border"}`}
+					onClick={() => setTab("openings")}
+				>
+					Openings
+				</button>
 			</div>
 			{tab === "play" && <Board />}
 			{tab === "games" &&
 				(gameId === null ? <Games onSelect={setGameId} /> : <Review gameId={gameId} onBack={() => setGameId(null)} />)}
+			{tab === "openings" && <Openings />}
 		</main>
 	);
 }

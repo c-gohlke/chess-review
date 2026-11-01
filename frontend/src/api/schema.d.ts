@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/openings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Openings */
+        get: operations["get_openings_api_openings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -119,6 +136,30 @@ export interface components {
         ImportResult: {
             /** Imported */
             imported: number;
+        };
+        /** OpeningStats */
+        OpeningStats: {
+            /** Name */
+            name: string;
+            /** Games */
+            games: number;
+            /** Wins */
+            wins: number;
+            /** Draws */
+            draws: number;
+            /** Losses */
+            losses: number;
+            /** Net */
+            net: number;
+            /** Variations */
+            variations: components["schemas"]["OpeningStats"][];
+        };
+        /** OpeningSummary */
+        OpeningSummary: {
+            /** White */
+            white: components["schemas"]["OpeningStats"][];
+            /** Black */
+            black: components["schemas"]["OpeningStats"][];
         };
         /**
          * Result
@@ -230,6 +271,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_openings_api_openings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningSummary"];
                 };
             };
         };

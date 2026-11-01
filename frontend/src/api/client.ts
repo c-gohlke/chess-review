@@ -2,6 +2,8 @@ import type { components } from "./schema";
 
 export type GameSummary = components["schemas"]["GameSummary"];
 export type GameDetail = components["schemas"]["GameDetail"];
+export type OpeningStats = components["schemas"]["OpeningStats"];
+export type OpeningSummary = components["schemas"]["OpeningSummary"];
 
 async function checkOk(response: Response): Promise<Response> {
 	if (!response.ok) throw new Error(`request failed with status ${response.status}`);
@@ -15,6 +17,11 @@ export async function listGames(): Promise<GameSummary[]> {
 
 export async function getGame(id: number): Promise<GameDetail> {
 	const response = await checkOk(await fetch(`/api/games/${id}`));
+	return response.json();
+}
+
+export async function getOpenings(): Promise<OpeningSummary> {
+	const response = await checkOk(await fetch("/api/openings"));
 	return response.json();
 }
 
