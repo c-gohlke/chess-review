@@ -35,7 +35,8 @@ test("openings split by colour with drill-down into variations", async ({ page }
 
 	await page.getByRole("button", { name: /Black/ }).click();
 	await expect(page.getByText("Scandinavian Defense")).toBeVisible();
-	await expect(page.getByText("−1.0")).toBeVisible();
+	await expect(page.getByText("25%")).toBeVisible();
+	await expect(page.getByText("4 games · −1.0 · 1W 0D 3L")).toBeVisible();
 	await expect(page.getByText("1 played once: +0.5")).toBeVisible();
 	await expect(page.getByText("London System")).toHaveCount(0);
 });

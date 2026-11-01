@@ -14,36 +14,37 @@ function sumNet(openings: OpeningStats[]): number {
 	return openings.reduce((total, opening) => total + opening.net, 0);
 }
 
-function NetBar({ net, scale }: { net: number; scale: number }) {
-	const width = `${(Math.abs(net) / scale) * 100}%`;
+// Centred on 50%: the bar reaches the left edge at 0% and the right edge at 100%.
+function ScoreBar({ score }: { score: number }) {
+	const width = `${Math.abs(score - 50) * 2}%`;
 	return (
 		<div className="grid h-2.5 grid-cols-2 bg-gray-100">
 			<div className="flex justify-end border-r border-gray-500">
-				{net < 0 && <div className="bg-orange-500" style={{ width }} />}
+				{score < 50 && <div className="bg-orange-500" style={{ width }} />}
 			</div>
-			<div className="flex">{net > 0 && <div className="bg-blue-700" style={{ width }} />}</div>
+			<div className="flex">{score > 50 && <div className="bg-blue-700" style={{ width }} />}</div>
 		</div>
 	);
 }
 
-function OpeningRow({ opening, scale }: { opening: OpeningStats; scale: number }) {
-	const score = Math.round(((opening.wins + opening.draws / 2) / opening.games) * 100);
+function OpeningRow({ opening }: { opening: OpeningStats }) {
+	const score = ((opening.wins + opening.draws / 2) / opening.games) * 100;
 	return (
 		<div className="flex flex-col gap-1.5">
 			<div className="flex items-baseline justify-between gap-3">
 				<span className="font-semibold">{opening.name}</span>
-				<span className="font-bold tabular-nums">{formatNet(opening.net)}</span>
+				<span className="font-bold tabular-nums">{Math.round(score)}%</span>
 			</div>
-			<NetBar net={opening.net} scale={scale} />
+			<ScoreBar score={score} />
 			<span className="text-sm text-gray-600 tabular-nums">
-				{opening.games} {opening.games === 1 ? "game" : "games"} · {score}% · {opening.wins}W {opening.draws}D{" "}
-				{opening.losses}L
+				{opening.games} {opening.games === 1 ? "game" : "games"} · {formatNet(opening.net)} · {opening.wins}W{" "}
+				{opening.draws}D {opening.losses}L
 			</span>
 		</div>
 	);
 }
 
-function FamilyRow({ family, scale }: { family: OpeningStats; scale: number }) {
+function FamilyRow({ family }: { family: OpeningStats }) {
 	const [open, setOpen] = useState(false);
 	return (
 		<li className="border-t">
@@ -53,13 +54,13 @@ function FamilyRow({ family, scale }: { family: OpeningStats; scale: number }) {
 				aria-expanded={open}
 				onClick={() => setOpen(!open)}
 			>
-				<OpeningRow opening={family} scale={scale} />
+				<OpeningRow opening={family} />
 			</button>
 			{open && (
 				<ul className="mb-3 flex flex-col gap-3 rounded bg-blue-50 p-3">
 					{family.variations.map((variation) => (
 						<li key={variation.name}>
-							<OpeningRow opening={variation} scale={scale} />
+							<OpeningRow opening={variation} />
 						</li>
 					))}
 				</ul>
@@ -86,9 +87,6 @@ export function Openings() {
 		return <p className="mx-auto w-full max-w-[600px]">No games yet</p>;
 	}
 
-	const everyOpening = [...summary.white, ...summary.black];
-	// One scale for both colours and for variations, so bar lengths stay comparable.
-	const scale = Math.max(...everyOpening.map((opening) => Math.abs(opening.net)), 0.5);
 	const repeated = summary[colour].filter((opening) => opening.games > 1);
 	const once = summary[colour].filter((opening) => opening.games === 1);
 
@@ -109,7 +107,7 @@ export function Openings() {
 			</div>
 			<ul className="flex flex-col">
 				{repeated.map((family) => (
-					<FamilyRow key={family.name} family={family} scale={scale} />
+					<FamilyRow key={family.name} family={family} />
 				))}
 				{once.length > 0 && (
 					<li className="border-t py-3 text-sm text-gray-600">
