@@ -12,8 +12,8 @@ async function checkOk(response: Response): Promise<Response> {
 	return response;
 }
 
-export async function listGames(): Promise<GameSummary[]> {
-	const response = await checkOk(await fetch("/api/games"));
+export async function listGames(limit: number, offset: number): Promise<GameSummary[]> {
+	const response = await checkOk(await fetch(`/api/games?limit=${limit}&offset=${offset}`));
 	return response.json();
 }
 

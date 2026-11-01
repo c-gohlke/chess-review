@@ -20,7 +20,7 @@ function evaluationFor(fen: string) {
 }
 
 async function openGame(page: Page) {
-	await page.route("**/api/games", (route) => route.fulfill({ json: [GAME] }));
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: [GAME] }));
 	await page.route("**/api/games/1", (route) => route.fulfill({ json: GAME }));
 	await page.route("**/api/evaluation?*", (route) => {
 		const fen = new URL(route.request().url()).searchParams.get("fen") ?? "";

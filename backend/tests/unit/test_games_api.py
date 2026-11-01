@@ -16,8 +16,23 @@ def client(tmp_path: Path, game_1: Game, game_2: Game) -> TestClient:
     return TestClient(create_app(tmp_path, db_path, Path("stockfish")))
 
 
+@pytest.mark.parametrize(
+    ("limit", "offset", "ids"),
+    [(1, 0, [2]), (1, 1, [1]), (5, 0, [2, 1]), (5, 2, [])],
+)
+def test_list_games_returns_one_page(client: TestClient, limit: int, offset: int, ids: list[int]) -> None:
+    response = client.get("/api/games", params={"limit": limit, "offset": offset})
+
+    assert [game["id"] for game in response.json()] == ids
+
+
+@pytest.mark.parametrize("params", [{"limit": 0, "offset": 0}, {"limit": 201, "offset": 0}, {"limit": 1, "offset": -1}])
+def test_list_games_rejects_out_of_range_pages(client: TestClient, params: dict[str, int]) -> None:
+    assert client.get("/api/games", params=params).status_code == 422
+
+
 def test_list_games_returns_newest_first(client: TestClient) -> None:
-    response = client.get("/api/games")
+    response = client.get("/api/games", params={"limit": 50, "offset": 0})
 
     assert response.status_code == 200
     assert response.json() == [
