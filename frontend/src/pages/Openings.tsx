@@ -56,7 +56,7 @@ function FamilyRow({ family, scale }: { family: OpeningStats; scale: number }) {
 				<OpeningRow opening={family} scale={scale} />
 			</button>
 			{open && (
-				<ul className="flex flex-col gap-3 pb-3 pl-4">
+				<ul className="mb-3 flex flex-col gap-3 rounded bg-blue-50 p-3">
 					{family.variations.map((variation) => (
 						<li key={variation.name}>
 							<OpeningRow opening={variation} scale={scale} />
