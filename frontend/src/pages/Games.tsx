@@ -1,11 +1,22 @@
 import { useEffect, useState } from "react";
-import { type GameSummary, importChesscom, listGames } from "../api/client";
+import { type GameListItem, importChesscom, listGames } from "../api/client";
 
 const PAGE_SIZE = 50;
 
+const RESULT_STYLES: Record<GameListItem["result"], string> = {
+	win: "border-green-300 bg-green-100",
+	loss: "border-red-300 bg-red-100",
+	draw: "",
+};
+
+function formatRatingChange(change: number): string {
+	if (change > 0) return `+${change}`;
+	return change < 0 ? `−${Math.abs(change)}` : "0";
+}
+
 export function Games({ onSelect }: { onSelect: (id: number) => void }) {
 	// Null until the first page arrives, so loading is not mistaken for having no games.
-	const [games, setGames] = useState<GameSummary[] | null>(null);
+	const [games, setGames] = useState<GameListItem[] | null>(null);
 	const [hasMore, setHasMore] = useState(false);
 	const [loadingMore, setLoadingMore] = useState(false);
 	const [loadError, setLoadError] = useState<string | null>(null);
@@ -23,7 +34,7 @@ export function Games({ onSelect }: { onSelect: (id: number) => void }) {
 
 	useEffect(reload, []);
 
-	function loadMore(loaded: GameSummary[]) {
+	function loadMore(loaded: GameListItem[]) {
 		setLoadingMore(true);
 		listGames(PAGE_SIZE, loaded.length)
 			.then((page) => {
@@ -65,10 +76,21 @@ export function Games({ onSelect }: { onSelect: (id: number) => void }) {
 					<li key={game.id}>
 						<button
 							type="button"
-							className="w-full rounded border px-4 py-2 text-left"
+							className={`w-full rounded border px-4 py-2 text-left ${RESULT_STYLES[game.result]}`}
 							onClick={() => onSelect(game.id)}
 						>
-							{game.white} vs {game.black} — {game.result} — {game.time_class} — {game.played_at.slice(0, 10)}
+							<span className="flex items-baseline justify-between gap-3">
+								<span>
+									{game.white} vs {game.black}
+								</span>
+								{game.rating_change !== null && (
+									<span className="font-bold tabular-nums">{formatRatingChange(game.rating_change)}</span>
+								)}
+							</span>
+							<span className="block text-sm text-gray-700">{game.opening}</span>
+							<span className="block text-sm text-gray-700">
+								{game.result} — {game.time_class} — {game.played_at.slice(0, 10)}
+							</span>
 						</button>
 					</li>
 				))}

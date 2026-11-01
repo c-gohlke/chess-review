@@ -1,8 +1,36 @@
 import { expect, test } from "@playwright/test";
 
 const GAMES = [
-	{ id: 1, white: "alice", black: "bob", result: "win", time_class: "blitz", played_at: "2024-01-01T00:00:00Z" },
-	{ id: 2, white: "carol", black: "dave", result: "loss", time_class: "rapid", played_at: "2024-01-02T00:00:00Z" },
+	{
+		id: 1,
+		white: "alice",
+		black: "bob",
+		result: "win",
+		time_class: "blitz",
+		played_at: "2024-01-01T00:00:00Z",
+		opening: "French Defense",
+		rating_change: 8,
+	},
+	{
+		id: 2,
+		white: "carol",
+		black: "dave",
+		result: "loss",
+		time_class: "rapid",
+		played_at: "2024-01-02T00:00:00Z",
+		opening: "Scandinavian Defense",
+		rating_change: -12,
+	},
+	{
+		id: 3,
+		white: "erin",
+		black: "frank",
+		result: "draw",
+		time_class: "rapid",
+		played_at: "2024-01-03T00:00:00Z",
+		opening: "London System",
+		rating_change: null,
+	},
 ];
 
 const GAME_DETAIL = { ...GAMES[0], pgn: "1. e4 e5 2. Nf3 Nc6" };
@@ -61,6 +89,22 @@ test("navigating moves with the left and right arrow keys stops at both ends", a
 
 	for (let press = 0; press < 5; press++) await page.keyboard.press("ArrowRight");
 	await expect(page.getByText("4 / 4")).toBeVisible();
+});
+
+test("rows are coloured by result and show the opening and rating change", async ({ page }) => {
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
+
+	await page.goto("/");
+	await page.getByRole("button", { name: "Games" }).click();
+
+	const row = (name: string) => page.getByRole("button", { name });
+	await expect(row("alice vs bob")).toHaveClass(/bg-green-100/);
+	await expect(row("alice vs bob")).toContainText("French Defense");
+	await expect(row("alice vs bob")).toContainText("+8");
+	await expect(row("carol vs dave")).toHaveClass(/bg-red-100/);
+	await expect(row("carol vs dave")).toContainText("Scandinavian Defense");
+	await expect(row("carol vs dave")).toContainText("−12");
+	await expect(row("erin vs frank")).not.toHaveClass(/bg-(green|red)-100/);
 });
 
 test("the empty message waits until games have loaded", async ({ page }) => {
