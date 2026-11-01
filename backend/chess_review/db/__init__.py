@@ -16,7 +16,13 @@ CREATE TABLE IF NOT EXISTS games (
     time_class TEXT NOT NULL,
     played_at TEXT NOT NULL,
     pgn TEXT NOT NULL
-)
+);
+
+CREATE TABLE IF NOT EXISTS evaluations (
+    position TEXT PRIMARY KEY,
+    cp INTEGER,
+    mate INTEGER
+);
 """
 
 
@@ -47,12 +53,19 @@ class Game:
     id: int | None = None
 
 
+@dataclass(frozen=True)
+class Evaluation:
+    """From White's point of view. Exactly one of the two is set; mate 0 means the position is checkmate."""
+
+    cp: int | None
+    mate: int | None
+
+
 def connect(path: Path) -> sqlite3.Connection:
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
-    conn.execute(SCHEMA)
-    conn.commit()
+    conn.executescript(SCHEMA)
     return conn
 
 
@@ -105,3 +118,16 @@ def list_games(conn: sqlite3.Connection) -> list[Game]:
 def get_game(conn: sqlite3.Connection, game_id: int) -> Game | None:
     row = conn.execute("SELECT * FROM games WHERE id = ?", (game_id,)).fetchone()
     return _row_to_game(row) if row is not None else None
+
+
+def get_evaluation(conn: sqlite3.Connection, position: str) -> Evaluation | None:
+    row = conn.execute("SELECT cp, mate FROM evaluations WHERE position = ?", (position,)).fetchone()
+    return Evaluation(cp=row["cp"], mate=row["mate"]) if row is not None else None
+
+
+def insert_evaluation(conn: sqlite3.Connection, position: str, evaluation: Evaluation) -> None:
+    conn.execute(
+        "INSERT OR IGNORE INTO evaluations (position, cp, mate) VALUES (?, ?, ?)",
+        (position, evaluation.cp, evaluation.mate),
+    )
+    conn.commit()

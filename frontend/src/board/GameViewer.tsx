@@ -1,6 +1,8 @@
 import { Chess } from "chess.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
+import { type Evaluation, getEvaluation } from "../api/client";
+import { EvalBar, formatEvaluation } from "./EvalBar";
 
 function fenAtPly(moves: string[], ply: number): string {
 	const game = new Chess();
@@ -15,12 +17,39 @@ export function GameViewer({ pgn }: { pgn: string }) {
 		return game.history();
 	});
 	const [ply, setPly] = useState(0);
+	const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
+	const [evaluationError, setEvaluationError] = useState<string | null>(null);
 
 	const fen = fenAtPly(moves, ply);
 
+	useEffect(() => {
+		// Stepping quickly must not let an older position's result replace the current one.
+		let stale = false;
+		getEvaluation(fen)
+			.then((result) => {
+				if (stale) return;
+				setEvaluation(result);
+				setEvaluationError(null);
+			})
+			.catch((error: Error) => {
+				if (!stale) setEvaluationError(error.message);
+			});
+		return () => {
+			stale = true;
+		};
+	}, [fen]);
+
 	return (
 		<div className="mx-auto w-full max-w-[600px]">
-			<Chessboard options={{ id: "game-viewer", position: fen, allowDragging: false }} />
+			<div className="flex gap-2">
+				<EvalBar evaluation={evaluation} whiteToMove={fen.split(" ")[1] === "w"} />
+				<div className="min-w-0 flex-1">
+					<Chessboard options={{ id: "game-viewer", position: fen, allowDragging: false }} />
+				</div>
+			</div>
+			<p className="mt-2 min-h-6 text-center font-bold tabular-nums">
+				{evaluationError ?? (evaluation && formatEvaluation(evaluation))}
+			</p>
 			<div className="mt-2 flex items-center justify-center gap-4">
 				<button
 					type="button"
