@@ -3,10 +3,10 @@ from collections.abc import Generator
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
-from chess_review.db import Result, TimeClass, connect, get_game, list_games
+from chess_review.db import Result, TimeClass, connect, get_game, list_games_page
 from chess_review.importers.chesscom import import_games
 
 router = APIRouter()
@@ -46,8 +46,10 @@ def import_chesscom(username: str, conn: Db) -> ImportResult:
 
 
 @router.get("/api/games")
-def get_games(conn: Db) -> list[GameSummary]:
-    return [GameSummary.model_validate(game, from_attributes=True) for game in list_games(conn)]
+def get_games(
+    conn: Db, limit: Annotated[int, Query(ge=1, le=200)], offset: Annotated[int, Query(ge=0)]
+) -> list[GameSummary]:
+    return [GameSummary.model_validate(game, from_attributes=True) for game in list_games_page(conn, limit, offset)]
 
 
 @router.get("/api/games/{game_id}")

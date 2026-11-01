@@ -35,7 +35,7 @@ def test_image_boots_and_serves_app() -> None:
         with httpx2.Client(base_url=base_url, timeout=10) as client:
             health = client.get("/api/health")
             index = client.get("/")
-            games = client.get("/api/games")
+            games = client.get("/api/games", params={"limit": 1, "offset": 0})
             evaluation = client.get("/api/evaluation", params={"fen": chess.STARTING_FEN}, timeout=30)
 
     assert evaluation.status_code == 200

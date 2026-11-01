@@ -8,7 +8,7 @@ const GAMES = [
 const GAME_DETAIL = { ...GAMES[0], pgn: "1. e4 e5 2. Nf3 Nc6" };
 
 test("games list, selecting a game, and navigating moves", async ({ page }) => {
-	await page.route("**/api/games", (route) => route.fulfill({ json: GAMES }));
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
 	await page.route("**/api/games/1", (route) => route.fulfill({ json: GAME_DETAIL }));
 	await page.route("**/api/evaluation?*", (route) => route.fulfill({ json: { cp: 20, mate: null } }));
 
@@ -40,7 +40,7 @@ test("games list, selecting a game, and navigating moves", async ({ page }) => {
 });
 
 test("navigating moves with the left and right arrow keys stops at both ends", async ({ page }) => {
-	await page.route("**/api/games", (route) => route.fulfill({ json: GAMES }));
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
 	await page.route("**/api/games/1", (route) => route.fulfill({ json: GAME_DETAIL }));
 
 	await page.goto("/");
@@ -63,8 +63,53 @@ test("navigating moves with the left and right arrow keys stops at both ends", a
 	await expect(page.getByText("4 / 4")).toBeVisible();
 });
 
+test("the empty message waits until games have loaded", async ({ page }) => {
+	let respond = () => {};
+	const released = new Promise<void>((resolve) => {
+		respond = resolve;
+	});
+	await page.route("**/api/games?*", async (route) => {
+		await released;
+		await route.fulfill({ json: [] });
+	});
+
+	await page.goto("/");
+	await page.getByRole("button", { name: "Games" }).click();
+
+	await expect(page.getByPlaceholder("Chess.com username")).toBeVisible();
+	await expect(page.getByText("No games yet")).toHaveCount(0);
+
+	respond();
+	await expect(page.getByText("No games yet")).toBeVisible();
+});
+
+test("games load one page at a time", async ({ page }) => {
+	const total = 75;
+	const allGames = Array.from({ length: total }, (_, index) => ({
+		...GAMES[0],
+		id: index + 1,
+		white: `player${index + 1}`,
+	}));
+	await page.route("**/api/games?*", (route) => {
+		const params = new URL(route.request().url()).searchParams;
+		const offset = Number(params.get("offset"));
+		return route.fulfill({ json: allGames.slice(offset, offset + Number(params.get("limit"))) });
+	});
+
+	await page.goto("/");
+	await page.getByRole("button", { name: "Games" }).click();
+
+	await expect(page.getByText(/ vs bob/)).toHaveCount(50);
+	await expect(page.getByText("player51 vs bob")).toHaveCount(0);
+
+	await page.getByRole("button", { name: "Show more" }).click();
+
+	await expect(page.getByText(/ vs bob/)).toHaveCount(total);
+	await expect(page.getByRole("button", { name: "Show more" })).toHaveCount(0);
+});
+
 test("importing games from chess.com", async ({ page }) => {
-	await page.route("**/api/games", (route) => route.fulfill({ json: [] }));
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: [] }));
 	await page.route("**/api/import/chesscom/alice", (route) => route.fulfill({ json: { imported: 3 } }));
 
 	await page.goto("/");

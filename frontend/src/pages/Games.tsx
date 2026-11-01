@@ -1,19 +1,38 @@
 import { useEffect, useState } from "react";
 import { type GameSummary, importChesscom, listGames } from "../api/client";
 
+const PAGE_SIZE = 50;
+
 export function Games({ onSelect }: { onSelect: (id: number) => void }) {
-	const [games, setGames] = useState<GameSummary[]>([]);
+	// Null until the first page arrives, so loading is not mistaken for having no games.
+	const [games, setGames] = useState<GameSummary[] | null>(null);
+	const [hasMore, setHasMore] = useState(false);
+	const [loadingMore, setLoadingMore] = useState(false);
 	const [loadError, setLoadError] = useState<string | null>(null);
 	const [username, setUsername] = useState("");
 	const [importMessage, setImportMessage] = useState<string | null>(null);
 
 	function reload() {
-		listGames()
-			.then(setGames)
+		listGames(PAGE_SIZE, 0)
+			.then((page) => {
+				setGames(page);
+				setHasMore(page.length === PAGE_SIZE);
+			})
 			.catch((error: Error) => setLoadError(error.message));
 	}
 
 	useEffect(reload, []);
+
+	function loadMore(loaded: GameSummary[]) {
+		setLoadingMore(true);
+		listGames(PAGE_SIZE, loaded.length)
+			.then((page) => {
+				setGames([...loaded, ...page]);
+				setHasMore(page.length === PAGE_SIZE);
+			})
+			.catch((error: Error) => setLoadError(error.message))
+			.finally(() => setLoadingMore(false));
+	}
 
 	async function handleImport() {
 		try {
@@ -40,9 +59,9 @@ export function Games({ onSelect }: { onSelect: (id: number) => void }) {
 			</div>
 			{importMessage && <p className="mb-4">{importMessage}</p>}
 			{loadError && <p className="text-red-600">{loadError}</p>}
-			{!loadError && games.length === 0 && <p>No games yet</p>}
+			{!loadError && games?.length === 0 && <p>No games yet</p>}
 			<ul className="flex flex-col gap-2">
-				{games.map((game) => (
+				{games?.map((game) => (
 					<li key={game.id}>
 						<button
 							type="button"
@@ -54,6 +73,16 @@ export function Games({ onSelect }: { onSelect: (id: number) => void }) {
 					</li>
 				))}
 			</ul>
+			{games && hasMore && (
+				<button
+					type="button"
+					className="mt-4 min-h-11 w-full rounded border px-4 py-2 disabled:opacity-50"
+					disabled={loadingMore}
+					onClick={() => loadMore(games)}
+				>
+					Show more
+				</button>
+			)}
 		</div>
 	);
 }

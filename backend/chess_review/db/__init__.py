@@ -115,6 +115,11 @@ def list_games(conn: sqlite3.Connection) -> list[Game]:
     return [_row_to_game(row) for row in rows]
 
 
+def list_games_page(conn: sqlite3.Connection, limit: int, offset: int) -> list[Game]:
+    rows = conn.execute("SELECT * FROM games ORDER BY id DESC LIMIT ? OFFSET ?", (limit, offset)).fetchall()
+    return [_row_to_game(row) for row in rows]
+
+
 def get_game(conn: sqlite3.Connection, game_id: int) -> Game | None:
     row = conn.execute("SELECT * FROM games WHERE id = ?", (game_id,)).fetchone()
     return _row_to_game(row) if row is not None else None
