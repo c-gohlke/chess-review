@@ -105,6 +105,69 @@
         }
       }
     },
+    "/api/openings": {
+      "get": {
+        "summary": "Get Openings",
+        "operationId": "get_openings_api_openings_get",
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          },
+          {
+            "name": "time_class",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TimeClass"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Class"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpeningSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Health",
@@ -234,6 +297,76 @@
           "imported"
         ],
         "title": "ImportResult"
+      },
+      "OpeningStats": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          },
+          "wins": {
+            "type": "integer",
+            "title": "Wins"
+          },
+          "draws": {
+            "type": "integer",
+            "title": "Draws"
+          },
+          "losses": {
+            "type": "integer",
+            "title": "Losses"
+          },
+          "net": {
+            "type": "number",
+            "title": "Net"
+          },
+          "variations": {
+            "items": {
+              "$ref": "#/components/schemas/OpeningStats"
+            },
+            "type": "array",
+            "title": "Variations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "games",
+          "wins",
+          "draws",
+          "losses",
+          "net",
+          "variations"
+        ],
+        "title": "OpeningStats"
+      },
+      "OpeningSummary": {
+        "properties": {
+          "white": {
+            "items": {
+              "$ref": "#/components/schemas/OpeningStats"
+            },
+            "type": "array",
+            "title": "White"
+          },
+          "black": {
+            "items": {
+              "$ref": "#/components/schemas/OpeningStats"
+            },
+            "type": "array",
+            "title": "Black"
+          }
+        },
+        "type": "object",
+        "required": [
+          "white",
+          "black"
+        ],
+        "title": "OpeningSummary"
       },
       "Result": {
         "type": "string",
