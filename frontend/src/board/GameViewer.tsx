@@ -1,5 +1,5 @@
 import { Chess } from "chess.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 
 function fenAtPly(moves: string[], ply: number): string {
@@ -15,6 +15,15 @@ export function GameViewer({ pgn }: { pgn: string }) {
 		return game.history();
 	});
 	const [ply, setPly] = useState(0);
+
+	useEffect(() => {
+		function onKeyDown(event: KeyboardEvent) {
+			if (event.key === "ArrowLeft") setPly((current) => Math.max(current - 1, 0));
+			if (event.key === "ArrowRight") setPly((current) => Math.min(current + 1, moves.length));
+		}
+		window.addEventListener("keydown", onKeyDown);
+		return () => window.removeEventListener("keydown", onKeyDown);
+	}, [moves]);
 
 	const fen = fenAtPly(moves, ply);
 

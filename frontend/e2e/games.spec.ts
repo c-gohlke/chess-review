@@ -38,6 +38,30 @@ test("games list, selecting a game, and navigating moves", async ({ page }) => {
 	await expect(page.getByRole("button", { name: "Next" })).toBeDisabled();
 });
 
+test("navigating moves with the left and right arrow keys stops at both ends", async ({ page }) => {
+	await page.route("**/api/games", (route) => route.fulfill({ json: GAMES }));
+	await page.route("**/api/games/1", (route) => route.fulfill({ json: GAME_DETAIL }));
+
+	await page.goto("/");
+	await page.getByRole("button", { name: "Games" }).click();
+	await page.getByText("alice vs bob").click();
+	await expect(page.getByText("0 / 4")).toBeVisible();
+
+	await page.keyboard.press("ArrowLeft");
+	await expect(page.getByText("0 / 4")).toBeVisible();
+
+	await page.keyboard.press("ArrowRight");
+	await expect(page.getByText("1 / 4")).toBeVisible();
+	await expect(page.locator('[data-square="e4"] [data-piece]')).toHaveCount(1);
+
+	await page.keyboard.press("ArrowLeft");
+	await expect(page.getByText("0 / 4")).toBeVisible();
+	await expect(page.locator('[data-square="e2"] [data-piece]')).toHaveCount(1);
+
+	for (let press = 0; press < 5; press++) await page.keyboard.press("ArrowRight");
+	await expect(page.getByText("4 / 4")).toBeVisible();
+});
+
 test("importing games from chess.com", async ({ page }) => {
 	await page.route("**/api/games", (route) => route.fulfill({ json: [] }));
 	await page.route("**/api/import/chesscom/alice", (route) => route.fulfill({ json: { imported: 3 } }));
