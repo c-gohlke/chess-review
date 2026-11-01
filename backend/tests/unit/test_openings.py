@@ -74,6 +74,37 @@ def test_summary_counts_results_per_family_and_variation(game_1: Game) -> None:
     ]
 
 
+@pytest.fixture
+def client(tmp_path: Path, game_1: Game, game_2: Game) -> TestClient:
+    db_path = tmp_path / "db.sqlite3"
+    conn = connect(db_path)
+    insert_games(conn, [replace(game_1, pgn=pgn("Italian-Game")), replace(game_2, pgn=pgn("French-Defense"))])
+    conn.close()
+    return TestClient(create_app(tmp_path, db_path))
+
+
+@pytest.mark.parametrize(
+    ("params", "white", "black"),
+    [
+        ({}, ["Italian Game"], ["French Defense"]),
+        ({"since": "2023-11-15T00:00:00Z"}, [], ["French Defense"]),
+        ({"time_class": "blitz"}, ["Italian Game"], []),
+        ({"since": "2023-11-15T00:00:00Z", "time_class": "blitz"}, [], []),
+    ],
+)
+def test_openings_endpoint_filters_games(
+    client: TestClient, params: dict[str, str], white: list[str], black: list[str]
+) -> None:
+    summary = client.get("/api/openings", params=params).json()
+
+    assert [family["name"] for family in summary["white"]] == white
+    assert [family["name"] for family in summary["black"]] == black
+
+
+def test_openings_endpoint_rejects_since_without_timezone(client: TestClient) -> None:
+    assert client.get("/api/openings", params={"since": "2023-11-15T00:00:00"}).status_code == 422
+
+
 def test_openings_endpoint_returns_summary(tmp_path: Path, game_1: Game) -> None:
     db_path = tmp_path / "db.sqlite3"
     conn = connect(db_path)

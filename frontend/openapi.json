@@ -109,6 +109,41 @@
       "get": {
         "summary": "Get Openings",
         "operationId": "get_openings_api_openings_get",
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          },
+          {
+            "name": "time_class",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TimeClass"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Class"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -116,6 +151,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OpeningSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }

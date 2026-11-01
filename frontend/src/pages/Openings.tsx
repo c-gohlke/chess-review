@@ -1,9 +1,31 @@
 import { useEffect, useState } from "react";
-import { getOpenings, type OpeningStats, type OpeningSummary } from "../api/client";
+import { getOpenings, type OpeningStats, type OpeningSummary, type TimeClass } from "../api/client";
 
 type Colour = "white" | "black";
 
 const COLOUR_LABELS: Record<Colour, string> = { white: "White", black: "Black" };
+
+const PERIODS = [
+	["1", "Last month"],
+	["3", "Last 3 months"],
+	["12", "Last year"],
+	["", "All time"],
+];
+
+const TIME_CONTROLS: [TimeClass | "", string][] = [
+	["", "All time controls"],
+	["bullet", "Bullet"],
+	["blitz", "Blitz"],
+	["rapid", "Rapid"],
+	["daily", "Daily"],
+];
+
+function monthsAgo(months: string): Date | null {
+	if (!months) return null;
+	const date = new Date();
+	date.setMonth(date.getMonth() - Number(months));
+	return date;
+}
 
 function formatNet(net: number): string {
 	if (net === 0) return "0.0";
@@ -73,38 +95,72 @@ export function Openings() {
 	const [summary, setSummary] = useState<OpeningSummary | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [colour, setColour] = useState<Colour>("white");
+	const [months, setMonths] = useState("3");
+	const [timeClass, setTimeClass] = useState<TimeClass | "">("");
 
 	useEffect(() => {
-		getOpenings()
-			.then(setSummary)
+		// A slower, older request must not overwrite the result of the latest filters.
+		let stale = false;
+		getOpenings(monthsAgo(months), timeClass || null)
+			.then((result) => {
+				if (!stale) setSummary(result);
+			})
 			.catch((err: Error) => setError(err.message));
-	}, []);
+		return () => {
+			stale = true;
+		};
+	}, [months, timeClass]);
 
-	if (error) return <p className="mx-auto w-full max-w-[600px] text-red-600">{error}</p>;
-	if (!summary) return null;
-
-	if (summary.white.length + summary.black.length === 0) {
-		return <p className="mx-auto w-full max-w-[600px]">No games yet</p>;
-	}
-
-	const repeated = summary[colour].filter((opening) => opening.games > 1);
-	const once = summary[colour].filter((opening) => opening.games === 1);
+	const openings = summary?.[colour] ?? [];
+	const repeated = openings.filter((opening) => opening.games > 1);
+	const once = openings.filter((opening) => opening.games === 1);
 
 	return (
 		<div className="mx-auto flex w-full max-w-[600px] flex-col gap-4">
 			<div className="grid grid-cols-2 gap-2">
-				{(["white", "black"] as const).map((option) => (
-					<button
-						key={option}
-						type="button"
-						className={`min-h-11 rounded px-4 py-2 text-left ${option === colour ? "bg-blue-600 text-white" : "border"}`}
-						aria-pressed={option === colour}
-						onClick={() => setColour(option)}
-					>
-						{COLOUR_LABELS[option]} <span className="font-bold tabular-nums">{formatNet(sumNet(summary[option]))}</span>
-					</button>
-				))}
+				<select
+					aria-label="Period"
+					className="min-h-11 rounded border px-3"
+					value={months}
+					onChange={(event) => setMonths(event.target.value)}
+				>
+					{PERIODS.map(([value, label]) => (
+						<option key={value} value={value}>
+							{label}
+						</option>
+					))}
+				</select>
+				<select
+					aria-label="Time control"
+					className="min-h-11 rounded border px-3"
+					value={timeClass}
+					onChange={(event) => setTimeClass(event.target.value as TimeClass | "")}
+				>
+					{TIME_CONTROLS.map(([value, label]) => (
+						<option key={value} value={value}>
+							{label}
+						</option>
+					))}
+				</select>
 			</div>
+			{error && <p className="text-red-600">{error}</p>}
+			{summary && (
+				<div className="grid grid-cols-2 gap-2">
+					{(["white", "black"] as const).map((option) => (
+						<button
+							key={option}
+							type="button"
+							className={`min-h-11 rounded px-4 py-2 text-left ${option === colour ? "bg-blue-600 text-white" : "border"}`}
+							aria-pressed={option === colour}
+							onClick={() => setColour(option)}
+						>
+							{COLOUR_LABELS[option]}{" "}
+							<span className="font-bold tabular-nums">{formatNet(sumNet(summary[option]))}</span>
+						</button>
+					))}
+				</div>
+			)}
+			{summary && openings.length === 0 && <p>No games for these filters</p>}
 			<ul className="flex flex-col">
 				{repeated.map((family) => (
 					<FamilyRow key={family.name} family={family} />

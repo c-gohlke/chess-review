@@ -277,7 +277,10 @@ export interface operations {
     };
     get_openings_api_openings_get: {
         parameters: {
-            query?: never;
+            query?: {
+                since?: string | null;
+                time_class?: components["schemas"]["TimeClass"] | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -291,6 +294,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OpeningSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
