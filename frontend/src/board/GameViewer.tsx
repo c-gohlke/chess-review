@@ -1,5 +1,5 @@
 import { Chess } from "chess.js";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { type Evaluation, getEvaluation } from "../api/client";
 import { EvalBar, formatEvaluation } from "./EvalBar";
@@ -20,7 +20,8 @@ export function GameViewer({ pgn }: { pgn: string }) {
 	const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
 	const [evaluationError, setEvaluationError] = useState<string | null>(null);
 
-	useEffect(() => {
+	// A layout effect, so the keys work as soon as the board is on screen.
+	useLayoutEffect(() => {
 		function onKeyDown(event: KeyboardEvent) {
 			if (event.key === "ArrowLeft") setPly((current) => Math.max(current - 1, 0));
 			if (event.key === "ArrowRight") setPly((current) => Math.min(current + 1, moves.length));
