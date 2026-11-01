@@ -33,7 +33,10 @@ function App() {
 				<button
 					type="button"
 					className={`rounded px-4 py-2 ${tab === "openings" ? "bg-blue-600 text-white" : "border"}`}
-					onClick={() => setTab("openings")}
+					onClick={() => {
+						setTab("openings");
+						setGameId(null);
+					}}
 				>
 					Openings
 				</button>
@@ -41,7 +44,13 @@ function App() {
 			{tab === "play" && <Board />}
 			{tab === "games" &&
 				(gameId === null ? <Games onSelect={setGameId} /> : <Review gameId={gameId} onBack={() => setGameId(null)} />)}
-			{tab === "openings" && <Openings />}
+			{tab === "openings" && gameId !== null && <Review gameId={gameId} onBack={() => setGameId(null)} />}
+			{/* Stays mounted behind a replay, so Back returns to the same expanded rows and filters. */}
+			{tab === "openings" && (
+				<div hidden={gameId !== null}>
+					<Openings onSelect={setGameId} />
+				</div>
+			)}
 		</main>
 	);
 }

@@ -52,7 +52,7 @@ def import_chesscom(username: str, conn: Db) -> ImportResult:
     return ImportResult(imported=import_games(conn, username))
 
 
-def _list_item(conn: sqlite3.Connection, game: Game) -> GameListItem:
+def list_item(conn: sqlite3.Connection, game: Game) -> GameListItem:
     family, _ = parse_opening(game.pgn)
     return GameListItem(
         **GameSummary.model_validate(game, from_attributes=True).model_dump(),
@@ -65,7 +65,7 @@ def _list_item(conn: sqlite3.Connection, game: Game) -> GameListItem:
 def get_games(
     conn: Db, limit: Annotated[int, Query(ge=1, le=200)], offset: Annotated[int, Query(ge=0)]
 ) -> list[GameListItem]:
-    return [_list_item(conn, game) for game in list_games_page(conn, limit, offset)]
+    return [list_item(conn, game) for game in list_games_page(conn, limit, offset)]
 
 
 @router.get("/api/games/{game_id}")

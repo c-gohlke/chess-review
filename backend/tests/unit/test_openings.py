@@ -101,6 +101,53 @@ def test_openings_endpoint_filters_games(
     assert [family["name"] for family in summary["black"]] == black
 
 
+def opening_game_ids(client: TestClient, **params: str) -> list[int]:
+    response = client.get("/api/openings/games", params=params)
+    assert response.status_code == 200
+    return [game["id"] for game in response.json()]
+
+
+def test_opening_games_match_family_variation_and_colour(tmp_path: Path, game_1: Game, game_2: Game) -> None:
+    exchange = pgn("French-Defense-Exchange-Variation")
+    advance = pgn("French-Defense-Advance-Variation")
+    db_path = tmp_path / "db.sqlite3"
+    conn = connect(db_path)
+    insert_games(
+        conn,
+        [
+            replace(game_2, source_id="older-exchange", pgn=exchange),
+            replace(game_2, source_id="newer-exchange", pgn=exchange),
+            replace(game_2, source_id="advance", pgn=advance),
+            replace(game_1, source_id="exchange-as-white", pgn=exchange),
+        ],
+    )
+    conn.close()
+    client = TestClient(create_app(tmp_path, db_path, Path("stockfish")))
+
+    ids = opening_game_ids(client, family="French Defense", variation="Exchange Variation", colour="black")
+
+    assert ids == [2, 1]
+
+
+def test_opening_games_use_the_same_filters_as_the_summary(client: TestClient) -> None:
+    french = {"family": "French Defense", "variation": NO_VARIATION, "colour": "black"}
+
+    assert opening_game_ids(client, **french) == [2]
+    assert opening_game_ids(client, **french, time_class="rapid") == [2]
+    assert opening_game_ids(client, **french, time_class="blitz") == []
+    assert opening_game_ids(client, **french, since="2023-11-16T00:00:00Z") == []
+
+
+def test_opening_games_rows_match_the_games_list(client: TestClient) -> None:
+    params = {"family": "Italian Game", "variation": NO_VARIATION, "colour": "white"}
+
+    [game] = client.get("/api/openings/games", params=params).json()
+
+    assert game["opening"] == "Italian Game"
+    assert game["white"] == "alice"
+    assert game["rating_change"] is None
+
+
 def test_openings_endpoint_rejects_since_without_timezone(client: TestClient) -> None:
     assert client.get("/api/openings", params={"since": "2023-11-15T00:00:00"}).status_code == 422
 
