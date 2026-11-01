@@ -20,6 +20,15 @@ export function GameViewer({ pgn }: { pgn: string }) {
 	const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
 	const [evaluationError, setEvaluationError] = useState<string | null>(null);
 
+	useEffect(() => {
+		function onKeyDown(event: KeyboardEvent) {
+			if (event.key === "ArrowLeft") setPly((current) => Math.max(current - 1, 0));
+			if (event.key === "ArrowRight") setPly((current) => Math.min(current + 1, moves.length));
+		}
+		window.addEventListener("keydown", onKeyDown);
+		return () => window.removeEventListener("keydown", onKeyDown);
+	}, [moves]);
+
 	const fen = fenAtPly(moves, ply);
 
 	useEffect(() => {
