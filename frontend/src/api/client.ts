@@ -1,6 +1,6 @@
 import type { components } from "./schema";
 
-export type GameSummary = components["schemas"]["GameSummary"];
+export type GameListItem = components["schemas"]["GameListItem"];
 export type GameDetail = components["schemas"]["GameDetail"];
 export type Evaluation = components["schemas"]["Evaluation"];
 export type OpeningStats = components["schemas"]["OpeningStats"];
@@ -12,7 +12,7 @@ async function checkOk(response: Response): Promise<Response> {
 	return response;
 }
 
-export async function listGames(limit: number, offset: number): Promise<GameSummary[]> {
+export async function listGames(limit: number, offset: number): Promise<GameListItem[]> {
 	const response = await checkOk(await fetch(`/api/games?limit=${limit}&offset=${offset}`));
 	return response.json();
 }

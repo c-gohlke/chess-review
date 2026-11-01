@@ -138,8 +138,8 @@ export interface components {
             /** Pgn */
             pgn: string;
         };
-        /** GameSummary */
-        GameSummary: {
+        /** GameListItem */
+        GameListItem: {
             /** Id */
             id: number;
             /** White */
@@ -153,6 +153,10 @@ export interface components {
              * Format: date-time
              */
             played_at: string;
+            /** Opening */
+            opening: string;
+            /** Rating Change */
+            rating_change: number | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -269,7 +273,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["GameSummary"][];
+                    "application/json": components["schemas"]["GameListItem"][];
                 };
             };
             /** @description Validation Error */

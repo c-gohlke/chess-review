@@ -7,6 +7,8 @@ const GAME = {
 	result: "loss",
 	time_class: "blitz",
 	played_at: "2024-01-01T00:00:00Z",
+	opening: "Barnes Opening",
+	rating_change: -8,
 	pgn: "1. f3 e5 2. g4 Qh4#",
 };
 

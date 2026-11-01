@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS evaluations (
     cp INTEGER,
     mate INTEGER
 );
+
+CREATE INDEX IF NOT EXISTS games_by_rating_pool ON games (username, time_class, played_at);
 """
 
 
@@ -118,6 +120,20 @@ def list_games(conn: sqlite3.Connection) -> list[Game]:
 def list_games_page(conn: sqlite3.Connection, limit: int, offset: int) -> list[Game]:
     rows = conn.execute("SELECT * FROM games ORDER BY id DESC LIMIT ? OFFSET ?", (limit, offset)).fetchall()
     return [_row_to_game(row) for row in rows]
+
+
+def previous_game(conn: sqlite3.Connection, game: Game) -> Game | None:
+    """The same player's game before this one in the same time control, which has its own rating."""
+    row = conn.execute(
+        """
+        SELECT * FROM games
+        WHERE username = ? AND time_class = ? AND played_at < ?
+        ORDER BY played_at DESC
+        LIMIT 1
+        """,
+        (game.username, game.time_class.value, game.played_at.isoformat()),
+    ).fetchone()
+    return _row_to_game(row) if row is not None else None
 
 
 def get_game(conn: sqlite3.Connection, game_id: int) -> Game | None:

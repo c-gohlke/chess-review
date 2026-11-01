@@ -79,7 +79,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/GameSummary"
+                    "$ref": "#/components/schemas/GameListItem"
                   },
                   "title": "Response Get Games Api Games Get"
                 }
@@ -340,7 +340,7 @@
         ],
         "title": "GameDetail"
       },
-      "GameSummary": {
+      "GameListItem": {
         "properties": {
           "id": {
             "type": "integer",
@@ -364,6 +364,21 @@
             "type": "string",
             "format": "date-time",
             "title": "Played At"
+          },
+          "opening": {
+            "type": "string",
+            "title": "Opening"
+          },
+          "rating_change": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating Change"
           }
         },
         "type": "object",
@@ -373,9 +388,11 @@
           "black",
           "result",
           "time_class",
-          "played_at"
+          "played_at",
+          "opening",
+          "rating_change"
         ],
-        "title": "GameSummary"
+        "title": "GameListItem"
       },
       "HTTPValidationError": {
         "properties": {
