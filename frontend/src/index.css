@@ -9,6 +9,13 @@ body {
 	color: CanvasText;
 }
 
+/* Browsers' own dark background is close to black. */
+@media (prefers-color-scheme: dark) {
+	body {
+		background: #2b2d31;
+	}
+}
+
 /* No fallback on purpose: with --piece-scale unset the transform computes to `none`, so idle pieces
    render exactly as before instead of through a scale(1) layer. */
 [data-piece] {

@@ -18,9 +18,7 @@ test("the page follows a dark system setting", async ({ page }) => {
 	await page.emulateMedia({ colorScheme: "dark" });
 	await page.goto("/");
 
-	const { background, text } = await colours(page);
-	expect(background).not.toBe("rgb(255, 255, 255)");
-	expect(text).toBe("rgb(255, 255, 255)");
+	expect(await colours(page)).toEqual({ background: "rgb(43, 45, 49)", text: "rgb(255, 255, 255)" });
 });
 
 test("the page changes when the system setting changes", async ({ page }) => {
