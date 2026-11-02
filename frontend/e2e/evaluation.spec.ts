@@ -66,6 +66,40 @@ test("a game played as black has black at the bottom", async ({ page }) => {
 	expect(whiteShareTop).toBe(await top(page.getByRole("img", { name: /evaluation/ })));
 });
 
+const ANALYSIS = {
+	decided_by: "Allowed a mate",
+	moments: [
+		{ ply: 2, move_number: 2, player: "alice", is_decisive: true, labels: ["Allowed mate in 1", "Low on time"] },
+		{ ply: 3, move_number: 2, player: "bob", is_decisive: false, labels: ["Hung a piece"] },
+	],
+};
+
+test("the game's statistics link to their moves", async ({ page }) => {
+	await openGame(page, { ...GAME, analysis: ANALYSIS } as typeof GAME);
+
+	await expect(page.getByText("Decided by:")).toContainText("Allowed a mate");
+	await page.getByRole("button", { name: /Move 2\. g4 alice Deciding move Allowed mate in 1, Low on time/ }).click();
+	await expect(page.getByText("3 / 4")).toBeVisible();
+
+	await page.getByRole("button", { name: /Move 2… Qh4# bob/ }).click();
+	await expect(page.getByText("4 / 4")).toBeVisible();
+});
+
+test("the statistics sit beside the board on a wide screen", async ({ page }, testInfo) => {
+	test.skip(testInfo.project.name !== "desktop", "phones stack them below the board");
+	await openGame(page, { ...GAME, analysis: ANALYSIS } as typeof GAME);
+
+	const board = await page.locator('[data-square="h1"]').boundingBox();
+	const panel = await page.getByRole("heading", { name: "Game statistics" }).boundingBox();
+	expect(panel?.x).toBeGreaterThan((board?.x ?? 0) + (board?.width ?? 0));
+});
+
+test("an unanalysed game says so", async ({ page }) => {
+	await openGame(page);
+
+	await expect(page.getByText("This game has not been analysed yet.")).toBeVisible();
+});
+
 test("the evaluation follows the replayed position", async ({ page }) => {
 	await openGame(page);
 	const next = page.getByRole("button", { name: "Next" });

@@ -1,8 +1,9 @@
 import { Chess } from "chess.js";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
-import { type Evaluation, getEvaluation } from "../api/client";
+import { type Evaluation, type GameDetail, getEvaluation } from "../api/client";
 import { EvalBar, formatEvaluation } from "./EvalBar";
+import { GameStatistics } from "./GameStatistics";
 
 function fenAtPly(moves: string[], ply: number): string {
 	const game = new Chess();
@@ -10,7 +11,13 @@ function fenAtPly(moves: string[], ply: number): string {
 	return game.fen();
 }
 
-export function GameViewer({ pgn, colour }: { pgn: string; colour: "white" | "black" }) {
+type Props = {
+	pgn: string;
+	colour: "white" | "black";
+	analysis: GameDetail["analysis"] | undefined;
+};
+
+export function GameViewer({ pgn, colour, analysis }: Props) {
 	const [moves] = useState(() => {
 		const game = new Chess();
 		game.loadPgn(pgn);
@@ -50,37 +57,42 @@ export function GameViewer({ pgn, colour }: { pgn: string; colour: "white" | "bl
 	}, [fen]);
 
 	return (
-		<div className="mx-auto w-full max-w-[600px]">
-			<div className="flex gap-2">
-				<EvalBar evaluation={evaluation} whiteToMove={fen.split(" ")[1] === "w"} whiteAtBottom={colour === "white"} />
-				<div className="min-w-0 flex-1">
-					<Chessboard options={{ id: "game-viewer", position: fen, allowDragging: false, boardOrientation: colour }} />
+		<div className="flex flex-col gap-6 lg:flex-row">
+			<div className="w-full min-w-0 max-w-[600px]">
+				<div className="flex gap-2">
+					<EvalBar evaluation={evaluation} whiteToMove={fen.split(" ")[1] === "w"} whiteAtBottom={colour === "white"} />
+					<div className="min-w-0 flex-1">
+						<Chessboard
+							options={{ id: "game-viewer", position: fen, allowDragging: false, boardOrientation: colour }}
+						/>
+					</div>
+				</div>
+				<p className="mt-2 min-h-6 text-center font-bold tabular-nums">
+					{evaluationError ?? (evaluation && formatEvaluation(evaluation))}
+				</p>
+				<div className="mt-2 flex items-center justify-center gap-4">
+					<button
+						type="button"
+						className="rounded border px-4 py-2 disabled:opacity-50"
+						disabled={ply === 0}
+						onClick={() => setPly(ply - 1)}
+					>
+						Prev
+					</button>
+					<span>
+						{ply} / {moves.length}
+					</span>
+					<button
+						type="button"
+						className="rounded border px-4 py-2 disabled:opacity-50"
+						disabled={ply === moves.length}
+						onClick={() => setPly(ply + 1)}
+					>
+						Next
+					</button>
 				</div>
 			</div>
-			<p className="mt-2 min-h-6 text-center font-bold tabular-nums">
-				{evaluationError ?? (evaluation && formatEvaluation(evaluation))}
-			</p>
-			<div className="mt-2 flex items-center justify-center gap-4">
-				<button
-					type="button"
-					className="rounded border px-4 py-2 disabled:opacity-50"
-					disabled={ply === 0}
-					onClick={() => setPly(ply - 1)}
-				>
-					Prev
-				</button>
-				<span>
-					{ply} / {moves.length}
-				</span>
-				<button
-					type="button"
-					className="rounded border px-4 py-2 disabled:opacity-50"
-					disabled={ply === moves.length}
-					onClick={() => setPly(ply + 1)}
-				>
-					Next
-				</button>
-			</div>
+			<GameStatistics analysis={analysis} moves={moves} ply={ply} onSelectPly={setPly} />
 		</div>
 	);
 }
