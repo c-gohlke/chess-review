@@ -37,6 +37,21 @@ CREATE TABLE IF NOT EXISTS game_reasons (
     tags TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS opponent_reasons (
+    game_id INTEGER PRIMARY KEY REFERENCES games (id),
+    decided_by TEXT NOT NULL,
+    tags TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS game_moments (
+    game_id INTEGER NOT NULL REFERENCES games (id),
+    ply INTEGER NOT NULL,
+    is_decisive INTEGER NOT NULL,
+    win_lost INTEGER NOT NULL,
+    tags TEXT NOT NULL,
+    PRIMARY KEY (game_id, ply)
+);
+
 CREATE INDEX IF NOT EXISTS games_by_rating_pool ON games (username, time_class, played_at);
 """
 
@@ -92,6 +107,17 @@ class GameReason:
 
     game_id: int
     decided_by: str
+    tags: list[str]
+
+
+@dataclass(frozen=True)
+class GameMoment:
+    """One costly move in a game. `ply` counts moves from 0, so odd plies are black's."""
+
+    game_id: int
+    ply: int
+    is_decisive: bool
+    win_lost: int
     tags: list[str]
 
 
@@ -203,6 +229,51 @@ def replace_game_reasons(conn: sqlite3.Connection, reasons: list[GameReason]) ->
         [(reason.game_id, reason.decided_by, " ".join(reason.tags)) for reason in reasons],
     )
     conn.commit()
+
+
+def replace_opponent_reasons(conn: sqlite3.Connection, reasons: list[GameReason]) -> None:
+    conn.executemany(
+        "INSERT OR REPLACE INTO opponent_reasons (game_id, decided_by, tags) VALUES (?, ?, ?)",
+        [(reason.game_id, reason.decided_by, " ".join(reason.tags)) for reason in reasons],
+    )
+    conn.commit()
+
+
+def replace_game_moments(conn: sqlite3.Connection, moments: list[GameMoment]) -> None:
+    """Replaces all moments of every game that appears in `moments`."""
+    conn.executemany("DELETE FROM game_moments WHERE game_id = ?", [(id_,) for id_ in {m.game_id for m in moments}])
+    conn.executemany(
+        "INSERT INTO game_moments (game_id, ply, is_decisive, win_lost, tags) VALUES (?, ?, ?, ?, ?)",
+        [
+            (moment.game_id, moment.ply, moment.is_decisive, moment.win_lost, " ".join(moment.tags))
+            for moment in moments
+        ],
+    )
+    conn.commit()
+
+
+def _get_reason(conn: sqlite3.Connection, table: str, game_id: int) -> GameReason | None:
+    # `table` is one of two constants below, never user input.
+    row = conn.execute(f"SELECT game_id, decided_by, tags FROM {table} WHERE game_id = ?", (game_id,)).fetchone()
+    return GameReason(row["game_id"], row["decided_by"], row["tags"].split()) if row else None
+
+
+def get_game_reason(conn: sqlite3.Connection, game_id: int) -> GameReason | None:
+    return _get_reason(conn, "game_reasons", game_id)
+
+
+def get_opponent_reason(conn: sqlite3.Connection, game_id: int) -> GameReason | None:
+    return _get_reason(conn, "opponent_reasons", game_id)
+
+
+def list_game_moments(conn: sqlite3.Connection, game_id: int) -> list[GameMoment]:
+    rows = conn.execute(
+        "SELECT game_id, ply, is_decisive, win_lost, tags FROM game_moments WHERE game_id = ? ORDER BY ply", (game_id,)
+    )
+    return [
+        GameMoment(row["game_id"], row["ply"], bool(row["is_decisive"]), row["win_lost"], row["tags"].split())
+        for row in rows
+    ]
 
 
 def list_loss_reasons(conn: sqlite3.Connection, username: str) -> list[GameReason]:

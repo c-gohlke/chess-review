@@ -189,6 +189,13 @@ export interface components {
             /** Kinds */
             kinds: components["schemas"]["ForkKind"][];
         };
+        /** GameAnalysis */
+        GameAnalysis: {
+            /** Decided By */
+            decided_by: string;
+            /** Moments */
+            moments: components["schemas"]["Moment"][];
+        };
         /** GameDetail */
         GameDetail: {
             /** Id */
@@ -211,6 +218,7 @@ export interface components {
              * @enum {string}
              */
             colour: "white" | "black";
+            analysis: components["schemas"]["GameAnalysis"] | null;
         };
         /** GameListItem */
         GameListItem: {
@@ -241,6 +249,21 @@ export interface components {
         ImportResult: {
             /** Imported */
             imported: number;
+        };
+        /** Moment */
+        Moment: {
+            /** Ply */
+            ply: number;
+            /** Move Number */
+            move_number: number;
+            /** Player */
+            player: string;
+            /** Is Decisive */
+            is_decisive: boolean;
+            /** Win Lost */
+            win_lost: number;
+            /** Labels */
+            labels: string[];
         };
         /** OpeningStats */
         OpeningStats: {

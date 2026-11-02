@@ -533,6 +533,27 @@
         ],
         "title": "ForkSummary"
       },
+      "GameAnalysis": {
+        "properties": {
+          "decided_by": {
+            "type": "string",
+            "title": "Decided By"
+          },
+          "moments": {
+            "items": {
+              "$ref": "#/components/schemas/Moment"
+            },
+            "type": "array",
+            "title": "Moments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decided_by",
+          "moments"
+        ],
+        "title": "GameAnalysis"
+      },
       "GameDetail": {
         "properties": {
           "id": {
@@ -569,6 +590,16 @@
               "black"
             ],
             "title": "Colour"
+          },
+          "analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GameAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -580,7 +611,8 @@
           "time_class",
           "played_at",
           "pgn",
-          "colour"
+          "colour",
+          "analysis"
         ],
         "title": "GameDetail"
       },
@@ -663,6 +695,47 @@
           "imported"
         ],
         "title": "ImportResult"
+      },
+      "Moment": {
+        "properties": {
+          "ply": {
+            "type": "integer",
+            "title": "Ply"
+          },
+          "move_number": {
+            "type": "integer",
+            "title": "Move Number"
+          },
+          "player": {
+            "type": "string",
+            "title": "Player"
+          },
+          "is_decisive": {
+            "type": "boolean",
+            "title": "Is Decisive"
+          },
+          "win_lost": {
+            "type": "integer",
+            "title": "Win Lost"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Labels"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ply",
+          "move_number",
+          "player",
+          "is_decisive",
+          "win_lost",
+          "labels"
+        ],
+        "title": "Moment"
       },
       "OpeningStats": {
         "properties": {

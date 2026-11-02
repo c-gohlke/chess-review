@@ -74,6 +74,7 @@ def test_get_game_returns_pgn(client: TestClient) -> None:
         "played_at": "2023-11-14T22:13:20Z",
         "pgn": "1. e4 e5",
         "colour": "white",
+        "analysis": None,
     }
 
 

@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import re
+import sqlite3
 from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -12,12 +13,15 @@ import chess
 
 from chess_review.db import (
     Game,
+    GameMoment,
     GameReason,
     Result,
     connect,
     list_games,
     load_position_analyses,
+    replace_game_moments,
     replace_game_reasons,
+    replace_opponent_reasons,
 )
 from chess_review.patterns.associations import Outcome, associate, expected_score
 from chess_review.patterns.habits import base_seconds, is_white, opening_habits, session_context
@@ -141,6 +145,22 @@ def summarize(reasons: list[GameReasons]) -> dict[str, object]:
     }
 
 
+def _moments(game_id: int, diagnosis: Diagnosis) -> list[GameMoment]:
+    return [
+        GameMoment(game_id, ply, ply == diagnosis.decisive_ply, diagnosis.win_lost[ply], tags)
+        for ply, tags in diagnosis.moments.items()
+    ]
+
+
+def store_reasons(conn: sqlite3.Connection, reasons: list[GameReasons]) -> None:
+    rows = [(item.game.id, item) for item in reasons if item.game.id is not None]
+    replace_game_reasons(conn, [GameReason(id_, item.own.primary, item.own.tags) for id_, item in rows])
+    replace_opponent_reasons(conn, [GameReason(id_, item.opponent.primary, item.opponent.tags) for id_, item in rows])
+    replace_game_moments(
+        conn, [moment for id_, item in rows for moment in _moments(id_, item.own) + _moments(id_, item.opponent)]
+    )
+
+
 def classify(db_path: Path, username: str, out_dir: Path) -> None:
     conn = connect(db_path)
     analyses = load_position_analyses(conn)
@@ -150,10 +170,7 @@ def classify(db_path: Path, username: str, out_dir: Path) -> None:
         steps = build_steps(game.pgn, analyses)
         if steps:
             reasons.append(diagnose_game(game, steps))
-    replace_game_reasons(
-        conn,
-        [GameReason(item.game.id, item.own.primary, item.own.tags) for item in reasons if item.game.id is not None],
-    )
+    store_reasons(conn, reasons)
     conn.close()
 
     write_csv(out_dir / "game-reasons.csv", [_reason_row(item) for item in reversed(reasons)])

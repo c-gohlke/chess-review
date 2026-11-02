@@ -8,7 +8,7 @@ import io
 import math
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import chess
 import chess.pgn
@@ -59,6 +59,9 @@ class Diagnosis:
     primary: str
     tags: list[str]
     decisive_move: int | None
+    decisive_ply: int | None = None
+    moments: dict[int, list[str]] = field(default_factory=dict)
+    win_lost: dict[int, int] = field(default_factory=dict)
 
 
 def win_percent(analysis: PositionAnalysis, board: chess.Board, color: chess.Color) -> float:
@@ -251,4 +254,11 @@ def diagnose(
             primary = ending
     if primary == "gradual_decline" and "opening" in tags:
         primary = "opening"
-    return Diagnosis(primary, sorted(tags), decisive.move_number if decisive else None)
+    return Diagnosis(
+        primary,
+        sorted(tags),
+        decisive.move_number if decisive else None,
+        decisive.index if decisive else None,
+        by_move,
+        {step.index: round(step.loss) for step in own if step.index in by_move},
+    )
