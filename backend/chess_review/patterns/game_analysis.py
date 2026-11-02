@@ -25,6 +25,7 @@ LABELS = {
     "missed_promotion": "Missed a promotion",
     "missed_skewer": "Missed a skewer",
     "missed_tactic": "Missed a tactic",
+    "no_moves": "No moves were played",
     "opening": "Opening error",
     "other_tactic": "Allowed a tactic",
     "pawn_loss": "Lost a pawn",

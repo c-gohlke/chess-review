@@ -129,7 +129,7 @@ export function GameStatistics({ analysis, moves, ply, onSelectPly }: Props) {
 					Decided by: <strong>{analysis.decided_by}</strong>
 				</p>
 			) : (
-				<p className="mb-2">This game has not been analysed yet.</p>
+				<p className="mb-2">This game has not been analysed yet. You can start the engine from the Statistics tab.</p>
 			)}
 			{analysis && analysis.moments.length === 0 && <p className="mb-2">No costly errors found.</p>}
 			{analysis && analysis.moments.length > 0 && (

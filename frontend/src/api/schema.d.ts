@@ -140,6 +140,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Analysis */
+        get: operations["get_analysis_api_analysis_get"];
+        put?: never;
+        /** Start Analysis */
+        post: operations["start_analysis_api_analysis_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -161,6 +179,26 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnalysisState */
+        AnalysisState: {
+            /** Games */
+            games: number;
+            /** Unanalysed */
+            unanalysed: number;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "idle" | "preparing" | "analysing" | "classifying" | "failed";
+            /** Done */
+            done: number;
+            /** Total */
+            total: number;
+            /** Error */
+            error: string | null;
+            /** Running Player */
+            running_player: string | null;
+        };
         /**
          * Evaluation
          * @description From White's point of view. Exactly one of the two is set; mate 0 means the position is checkmate.
@@ -554,6 +592,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ForkSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_analysis_api_analysis_get: {
+        parameters: {
+            query: {
+                username: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_analysis_api_analysis_post: {
+        parameters: {
+            query: {
+                username: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisState"];
                 };
             };
             /** @description Validation Error */
