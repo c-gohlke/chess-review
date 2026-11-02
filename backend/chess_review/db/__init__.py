@@ -112,13 +112,20 @@ def _row_to_game(row: sqlite3.Row) -> Game:
     )
 
 
-def list_games(conn: sqlite3.Connection) -> list[Game]:
-    rows = conn.execute("SELECT * FROM games ORDER BY id DESC").fetchall()
+def list_usernames(conn: sqlite3.Connection) -> list[str]:
+    rows = conn.execute("SELECT username FROM games GROUP BY username ORDER BY MIN(id)").fetchall()
+    return [row["username"] for row in rows]
+
+
+def list_games(conn: sqlite3.Connection, username: str) -> list[Game]:
+    rows = conn.execute("SELECT * FROM games WHERE username = ? ORDER BY id DESC", (username,)).fetchall()
     return [_row_to_game(row) for row in rows]
 
 
-def list_games_page(conn: sqlite3.Connection, limit: int, offset: int) -> list[Game]:
-    rows = conn.execute("SELECT * FROM games ORDER BY id DESC LIMIT ? OFFSET ?", (limit, offset)).fetchall()
+def list_games_page(conn: sqlite3.Connection, username: str, limit: int, offset: int) -> list[Game]:
+    rows = conn.execute(
+        "SELECT * FROM games WHERE username = ? ORDER BY id DESC LIMIT ? OFFSET ?", (username, limit, offset)
+    ).fetchall()
     return [_row_to_game(row) for row in rows]
 
 

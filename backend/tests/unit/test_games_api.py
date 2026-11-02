@@ -23,18 +23,18 @@ def client(tmp_path: Path, game_1: Game, game_2: Game) -> TestClient:
     [(1, 0, [2]), (1, 1, [1]), (5, 0, [2, 1]), (5, 2, [])],
 )
 def test_list_games_returns_one_page(client: TestClient, limit: int, offset: int, ids: list[int]) -> None:
-    response = client.get("/api/games", params={"limit": limit, "offset": offset})
+    response = client.get("/api/games", params={"username": "alice", "limit": limit, "offset": offset})
 
     assert [game["id"] for game in response.json()] == ids
 
 
 @pytest.mark.parametrize("params", [{"limit": 0, "offset": 0}, {"limit": 201, "offset": 0}, {"limit": 1, "offset": -1}])
 def test_list_games_rejects_out_of_range_pages(client: TestClient, params: dict[str, int]) -> None:
-    assert client.get("/api/games", params=params).status_code == 422
+    assert client.get("/api/games", params={"username": "alice", **params}).status_code == 422
 
 
 def test_list_games_returns_newest_first(client: TestClient) -> None:
-    response = client.get("/api/games", params={"limit": 50, "offset": 0})
+    response = client.get("/api/games", params={"username": "alice", "limit": 50, "offset": 0})
 
     assert response.status_code == 200
     assert response.json() == [
@@ -105,10 +105,33 @@ def test_list_games_adds_opening_and_rating_change(tmp_path: Path, game_1: Game,
     conn.close()
     client = TestClient(create_app(tmp_path, db_path, Path("stockfish")))
 
-    games = client.get("/api/games", params={"limit": 5, "offset": 0}).json()
+    games = client.get("/api/games", params={"username": "alice", "limit": 5, "offset": 0}).json()
 
     assert [(game["id"], game["opening"], game["rating_change"]) for game in games] == [
         (3, "Sicilian Defense", None),
         (2, "Sicilian Defense", 12),
         (1, "Sicilian Defense", None),
     ]
+
+
+def two_player_client(tmp_path: Path, game_1: Game, game_2: Game) -> TestClient:
+    db_path = tmp_path / "db.sqlite3"
+    conn = connect(db_path)
+    bob_game = replace(game_2, source_id="bob-game", username="bob", white="bob", black="carla")
+    insert_games(conn, [game_1, bob_game])
+    conn.close()
+    return TestClient(create_app(tmp_path, db_path, Path("stockfish")))
+
+
+def test_list_games_only_returns_the_requested_player(tmp_path: Path, game_1: Game, game_2: Game) -> None:
+    client = two_player_client(tmp_path, game_1, game_2)
+
+    response = client.get("/api/games", params={"username": "bob", "limit": 5, "offset": 0})
+
+    assert [game["white"] for game in response.json()] == ["bob"]
+
+
+def test_users_are_listed_in_import_order(tmp_path: Path, game_1: Game, game_2: Game) -> None:
+    client = two_player_client(tmp_path, game_1, game_2)
+
+    assert client.get("/api/users").json() == ["alice", "bob"]

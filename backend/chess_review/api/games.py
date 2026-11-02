@@ -6,7 +6,16 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
-from chess_review.db import Game, Result, TimeClass, connect, get_game, list_games_page, previous_game
+from chess_review.db import (
+    Game,
+    Result,
+    TimeClass,
+    connect,
+    get_game,
+    list_games_page,
+    list_usernames,
+    previous_game,
+)
 from chess_review.importers.chesscom import import_games
 from chess_review.patterns.openings import parse_opening
 from chess_review.patterns.ratings import rating_change
@@ -61,11 +70,16 @@ def list_item(conn: sqlite3.Connection, game: Game) -> GameListItem:
     )
 
 
+@router.get("/api/users")
+def get_users(conn: Db) -> list[str]:
+    return list_usernames(conn)
+
+
 @router.get("/api/games")
 def get_games(
-    conn: Db, limit: Annotated[int, Query(ge=1, le=200)], offset: Annotated[int, Query(ge=0)]
+    conn: Db, username: str, limit: Annotated[int, Query(ge=1, le=200)], offset: Annotated[int, Query(ge=0)]
 ) -> list[GameListItem]:
-    return [list_item(conn, game) for game in list_games_page(conn, limit, offset)]
+    return [list_item(conn, game) for game in list_games_page(conn, username, limit, offset)]
 
 
 @router.get("/api/games/{game_id}")

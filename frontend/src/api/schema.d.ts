@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Users */
+        get: operations["get_users_api_users_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/games": {
         parameters: {
             query?: never;
@@ -272,9 +289,30 @@ export interface operations {
             };
         };
     };
+    get_users_api_users_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+        };
+    };
     get_games_api_games_get: {
         parameters: {
             query: {
+                username: string;
                 limit: number;
                 offset: number;
             };
@@ -337,7 +375,8 @@ export interface operations {
     };
     get_openings_api_openings_get: {
         parameters: {
-            query?: {
+            query: {
+                username: string;
                 since?: string | null;
                 time_class?: components["schemas"]["TimeClass"] | null;
             };
@@ -370,6 +409,7 @@ export interface operations {
     get_opening_games_api_openings_games_get: {
         parameters: {
             query: {
+                username: string;
                 family: string;
                 variation: string;
                 colour: "white" | "black";

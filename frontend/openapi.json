@@ -44,11 +44,42 @@
         }
       }
     },
+    "/api/users": {
+      "get": {
+        "summary": "Get Users",
+        "operationId": "get_users_api_users_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Response Get Users Api Users Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/games": {
       "get": {
         "summary": "Get Games",
         "operationId": "get_games_api_games_get",
         "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          },
           {
             "name": "limit",
             "in": "query",
@@ -144,6 +175,15 @@
         "operationId": "get_openings_api_openings_get",
         "parameters": [
           {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          },
+          {
             "name": "since",
             "in": "query",
             "required": false,
@@ -206,6 +246,15 @@
         "summary": "Get Opening Games",
         "operationId": "get_opening_games_api_openings_games_get",
         "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          },
           {
             "name": "family",
             "in": "query",

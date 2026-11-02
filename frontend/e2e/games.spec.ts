@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+test.beforeEach(({ page }) => page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] })));
+
 const GAMES = [
 	{
 		id: 1,
@@ -151,6 +153,69 @@ test("games load one page at a time", async ({ page }) => {
 
 	await expect(page.getByText(/ vs bob/)).toHaveCount(total);
 	await expect(page.getByRole("button", { name: "Show more" })).toHaveCount(0);
+});
+
+test("games and openings show one player at a time, and the choice is remembered", async ({ page }) => {
+	await page.route("**/api/users", (route) => route.fulfill({ json: ["alice", "carol"] }));
+	const players: (string | null)[] = [];
+	await page.route("**/api/games?*", (route) => {
+		const player = new URL(route.request().url()).searchParams.get("username");
+		players.push(player);
+		return route.fulfill({ json: GAMES.filter((game) => game.white === player) });
+	});
+	await page.route("**/api/openings?*", (route) => {
+		const player = new URL(route.request().url()).searchParams.get("username");
+		players.push(player);
+		return route.fulfill({ json: { white: [], black: [] } });
+	});
+
+	await page.goto("/");
+	await page.getByRole("button", { name: "Games" }).click();
+	await expect(page.getByText("alice vs bob")).toBeVisible();
+	await expect(page.getByText("carol vs dave")).toHaveCount(0);
+
+	await page.getByLabel("Player").selectOption("carol");
+	await expect(page.getByText("carol vs dave")).toBeVisible();
+	await expect(page.getByText("alice vs bob")).toHaveCount(0);
+
+	await page.getByRole("button", { name: "Openings" }).click();
+	await expect(page.getByText("No games for these filters")).toBeVisible();
+	expect(players.at(-1)).toBe("carol");
+
+	await page.reload();
+	await page.getByRole("button", { name: "Games" }).click();
+	await expect(page.getByText("carol vs dave")).toBeVisible();
+});
+
+test("a single player gets no selector", async ({ page }) => {
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
+
+	await page.goto("/");
+	await page.getByRole("button", { name: "Games" }).click();
+
+	await expect(page.getByText("alice vs bob")).toBeVisible();
+	await expect(page.getByLabel("Player")).toHaveCount(0);
+});
+
+test("importing a new player switches to them", async ({ page }) => {
+	let users = ["alice"];
+	await page.route("**/api/users", (route) => route.fulfill({ json: users }));
+	await page.route("**/api/import/chesscom/Carol", (route) => {
+		users = ["alice", "carol"];
+		return route.fulfill({ json: { imported: 1 } });
+	});
+	await page.route("**/api/games?*", (route) => {
+		const player = new URL(route.request().url()).searchParams.get("username");
+		return route.fulfill({ json: GAMES.filter((game) => game.white === player) });
+	});
+
+	await page.goto("/");
+	await page.getByRole("button", { name: "Games" }).click();
+	await page.getByPlaceholder("Chess.com username").fill("Carol");
+	await page.getByRole("button", { name: "Import" }).click();
+
+	await expect(page.getByText("carol vs dave")).toBeVisible();
+	await expect(page.getByLabel("Player")).toHaveValue("carol");
 });
 
 test("importing games from chess.com", async ({ page }) => {

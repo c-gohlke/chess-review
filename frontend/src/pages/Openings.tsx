@@ -10,7 +10,7 @@ import {
 } from "../api/client";
 import { GameRow } from "../components/GameRow";
 
-type Filters = { colour: Colour; months: string; timeClass: TimeClass | "" };
+type Filters = { player: string; colour: Colour; months: string; timeClass: TimeClass | "" };
 
 const COLOUR_LABELS: Record<Colour, string> = { white: "White", black: "Black" };
 
@@ -78,7 +78,7 @@ function OpeningRow({ opening }: { opening: OpeningStats }) {
 function VariationRow({
 	family,
 	variation,
-	filters: { colour, months, timeClass },
+	filters: { player, colour, months, timeClass },
 	onSelect,
 }: {
 	family: string;
@@ -94,7 +94,7 @@ function VariationRow({
 		if (!open) return;
 		// A slower, older request must not overwrite the result of the latest filters.
 		let stale = false;
-		getOpeningGames(family, variation.name, colour, monthsAgo(months), timeClass || null)
+		getOpeningGames(player, family, variation.name, colour, monthsAgo(months), timeClass || null)
 			.then((result) => {
 				if (!stale) setGames(result);
 			})
@@ -102,7 +102,7 @@ function VariationRow({
 		return () => {
 			stale = true;
 		};
-	}, [open, family, variation.name, colour, months, timeClass]);
+	}, [open, player, family, variation.name, colour, months, timeClass]);
 
 	return (
 		<li>
@@ -160,7 +160,7 @@ function FamilyRow({
 	);
 }
 
-export function Openings({ onSelect }: { onSelect: (id: number) => void }) {
+export function Openings({ player, onSelect }: { player: string; onSelect: (id: number) => void }) {
 	const [summary, setSummary] = useState<OpeningSummary | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [colour, setColour] = useState<Colour>("white");
@@ -170,7 +170,7 @@ export function Openings({ onSelect }: { onSelect: (id: number) => void }) {
 	useEffect(() => {
 		// A slower, older request must not overwrite the result of the latest filters.
 		let stale = false;
-		getOpenings(monthsAgo(months), timeClass || null)
+		getOpenings(player, monthsAgo(months), timeClass || null)
 			.then((result) => {
 				if (!stale) setSummary(result);
 			})
@@ -178,7 +178,7 @@ export function Openings({ onSelect }: { onSelect: (id: number) => void }) {
 		return () => {
 			stale = true;
 		};
-	}, [months, timeClass]);
+	}, [player, months, timeClass]);
 
 	const openings = summary?.[colour] ?? [];
 	const repeated = openings.filter((opening) => opening.games > 1);
@@ -235,7 +235,7 @@ export function Openings({ onSelect }: { onSelect: (id: number) => void }) {
 					<FamilyRow
 						key={`${colour}-${family.name}`}
 						family={family}
-						filters={{ colour, months, timeClass }}
+						filters={{ player, colour, months, timeClass }}
 						onSelect={onSelect}
 					/>
 				))}

@@ -1,5 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
+test.beforeEach(({ page }) => page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] })));
+
 const GAME = {
 	id: 1,
 	white: "alice",

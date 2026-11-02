@@ -14,7 +14,7 @@ def test_list_games_newest_first(tmp_path: Path, game_1: Game, game_2: Game) -> 
     conn = connect(tmp_path / "db.sqlite3")
     insert_games(conn, [game_1, game_2])
 
-    games = list_games(conn)
+    games = list_games(conn, "alice")
 
     assert [game.source_id for game in games] == [game_2.source_id, game_1.source_id]
 
@@ -22,7 +22,7 @@ def test_list_games_newest_first(tmp_path: Path, game_1: Game, game_2: Game) -> 
 def test_get_game_by_id(tmp_path: Path, game_1: Game) -> None:
     conn = connect(tmp_path / "db.sqlite3")
     insert_games(conn, [game_1])
-    (stored,) = list_games(conn)
+    (stored,) = list_games(conn, "alice")
 
     assert stored.id is not None
     assert get_game(conn, stored.id) == stored
