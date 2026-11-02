@@ -119,6 +119,11 @@ def build_steps(pgn: str, analyses: Mapping[str, PositionAnalysis]) -> list[Step
     return steps
 
 
+def has_moves(pgn: str) -> bool:
+    game = chess.pgn.read_game(io.StringIO(pgn))
+    return game is not None and game.next() is not None
+
+
 def _pieces_left(board: chess.Board) -> int:
     return chess.popcount(board.occupied & ~board.kings & ~board.pawns)
 

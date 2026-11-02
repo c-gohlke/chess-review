@@ -101,6 +101,10 @@ class PositionAnalysis:
     pv: str
 
 
+# Stored for a game nobody moved in, so it stops counting as waiting for the engine.
+NO_MOVES = "no_moves"
+
+
 @dataclass(frozen=True)
 class GameReason:
     """What went wrong for the game's player; written by themes/classify.py."""
@@ -276,14 +280,33 @@ def list_game_moments(conn: sqlite3.Connection, game_id: int) -> list[GameMoment
     ]
 
 
+def count_games(conn: sqlite3.Connection, username: str) -> int:
+    return int(conn.execute("SELECT count(*) FROM games WHERE username = ?", (username,)).fetchone()[0])
+
+
+UNANALYSED = """
+    FROM games LEFT JOIN game_reasons ON game_reasons.game_id = games.id
+    WHERE games.username = ? AND game_reasons.game_id IS NULL
+"""
+
+
+def count_unanalysed_games(conn: sqlite3.Connection, username: str) -> int:
+    return int(conn.execute(f"SELECT count(*) {UNANALYSED}", (username,)).fetchone()[0])
+
+
+def list_unanalysed_games(conn: sqlite3.Connection, username: str) -> list[Game]:
+    rows = conn.execute(f"SELECT games.* {UNANALYSED} ORDER BY games.id DESC", (username,)).fetchall()
+    return [_row_to_game(row) for row in rows]
+
+
 def list_loss_reasons(conn: sqlite3.Connection, username: str) -> list[GameReason]:
     rows = conn.execute(
         """
         SELECT game_reasons.game_id, game_reasons.decided_by, game_reasons.tags
         FROM game_reasons JOIN games ON games.id = game_reasons.game_id
-        WHERE games.username = ? AND games.result = ?
+        WHERE games.username = ? AND games.result = ? AND game_reasons.decided_by != ?
         """,
-        (username, Result.LOSS),
+        (username, Result.LOSS, NO_MOVES),
     )
     return [GameReason(row["game_id"], row["decided_by"], row["tags"].split()) for row in rows]
 

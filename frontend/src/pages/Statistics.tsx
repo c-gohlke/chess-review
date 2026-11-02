@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { type ForkSummary, getForkStatistics } from "../api/client";
+import { EngineRun } from "./EngineRun";
 
 function percent(part: number, whole: number): string {
 	return `${((part / whole) * 100).toFixed(1)}%`;
@@ -45,15 +46,18 @@ function Forks({ player, forks }: { player: string; forks: ForkSummary }) {
 export function Statistics({ player }: { player: string }) {
 	const [forks, setForks] = useState<ForkSummary | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [runsFinished, setRunsFinished] = useState(0);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: a finished run changes the numbers.
 	useEffect(() => {
 		getForkStatistics(player)
 			.then(setForks)
 			.catch((err: Error) => setError(err.message));
-	}, [player]);
+	}, [player, runsFinished]);
 
 	return (
 		<section className="mx-auto w-full max-w-[600px]">
+			<EngineRun player={player} onFinished={() => setRunsFinished((count) => count + 1)} />
 			<h2 className="mb-2 text-lg font-bold">Losses to forks</h2>
 			{error && <p className="text-red-600 dark:text-red-400">{error}</p>}
 			{forks && <Forks player={player} forks={forks} />}

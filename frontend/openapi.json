@@ -426,6 +426,82 @@
         }
       }
     },
+    "/api/analysis": {
+      "get": {
+        "summary": "Get Analysis",
+        "operationId": "get_analysis_api_analysis_get",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Start Analysis",
+        "operationId": "start_analysis_api_analysis_post",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Health",
@@ -451,6 +527,70 @@
   },
   "components": {
     "schemas": {
+      "AnalysisState": {
+        "properties": {
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          },
+          "unanalysed": {
+            "type": "integer",
+            "title": "Unanalysed"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "preparing",
+              "analysing",
+              "classifying",
+              "failed"
+            ],
+            "title": "Phase"
+          },
+          "done": {
+            "type": "integer",
+            "title": "Done"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "running_player": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Running Player"
+          }
+        },
+        "type": "object",
+        "required": [
+          "games",
+          "unanalysed",
+          "phase",
+          "done",
+          "total",
+          "error",
+          "running_player"
+        ],
+        "title": "AnalysisState"
+      },
       "Evaluation": {
         "properties": {
           "cp": {

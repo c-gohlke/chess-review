@@ -6,6 +6,7 @@ export type Evaluation = components["schemas"]["Evaluation"];
 export type OpeningStats = components["schemas"]["OpeningStats"];
 export type OpeningSummary = components["schemas"]["OpeningSummary"];
 export type ForkSummary = components["schemas"]["ForkSummary"];
+export type AnalysisState = components["schemas"]["AnalysisState"];
 export type TimeClass = components["schemas"]["TimeClass"];
 export type Colour = "white" | "black";
 
@@ -32,6 +33,16 @@ export async function getGame(id: number): Promise<GameDetail> {
 
 export async function getForkStatistics(username: string): Promise<ForkSummary> {
 	const response = await checkOk(await fetch(`/api/statistics/forks?${new URLSearchParams({ username })}`));
+	return response.json();
+}
+
+export async function getAnalysis(username: string): Promise<AnalysisState> {
+	const response = await checkOk(await fetch(`/api/analysis?${new URLSearchParams({ username })}`));
+	return response.json();
+}
+
+export async function startAnalysis(username: string): Promise<AnalysisState> {
+	const response = await checkOk(await fetch(`/api/analysis?${new URLSearchParams({ username })}`, { method: "POST" }));
 	return response.json();
 }
 

@@ -12,12 +12,14 @@ from pathlib import Path
 import chess
 
 from chess_review.db import (
+    NO_MOVES,
     Game,
     GameMoment,
     GameReason,
     Result,
     connect,
     list_games,
+    list_unanalysed_games,
     load_position_analyses,
     replace_game_moments,
     replace_game_reasons,
@@ -27,7 +29,7 @@ from chess_review.patterns.associations import Outcome, associate, expected_scor
 from chess_review.patterns.habits import base_seconds, is_white, opening_habits, session_context
 from chess_review.patterns.openings import parse_opening
 from chess_review.patterns.ratings import own_rating
-from chess_review.themes.reasons import Diagnosis, Step, build_steps, diagnose
+from chess_review.themes.reasons import Diagnosis, Step, build_steps, diagnose, has_moves
 
 SCORES = {Result.WIN: 1.0, Result.DRAW: 0.5, Result.LOSS: 0.0}
 
@@ -159,6 +161,23 @@ def store_reasons(conn: sqlite3.Connection, reasons: list[GameReasons]) -> None:
     replace_game_moments(
         conn, [moment for id_, item in rows for moment in _moments(id_, item.own) + _moments(id_, item.opponent)]
     )
+
+
+def classify_unanalysed(db_path: Path, username: str) -> None:
+    """A game still missing engine results is left out, so a later run picks it up."""
+    conn = connect(db_path)
+    analyses = load_position_analyses(conn)
+    games = list_unanalysed_games(conn, username)
+    reasons = []
+    for game in games:
+        steps = build_steps(game.pgn, analyses)
+        if steps:
+            reasons.append(diagnose_game(game, steps))
+    store_reasons(conn, reasons)
+    empty = [GameReason(game.id, NO_MOVES, []) for game in games if game.id is not None and not has_moves(game.pgn)]
+    replace_game_reasons(conn, empty)
+    replace_opponent_reasons(conn, empty)
+    conn.close()
 
 
 def classify(db_path: Path, username: str, out_dir: Path) -> None:

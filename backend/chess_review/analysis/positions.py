@@ -6,15 +6,15 @@ Newest games go first, so a partial run already covers the games that matter mos
 
 import argparse
 import io
-from collections.abc import Iterator
-from multiprocessing import Pool
+from collections.abc import Callable, Iterator, Sequence
+from multiprocessing import get_context
 from pathlib import Path
 
 import chess
 import chess.engine
 import chess.pgn
 
-from chess_review.db import PositionAnalysis, connect, insert_position_analyses, list_games, stored_positions
+from chess_review.db import Game, PositionAnalysis, connect, insert_position_analyses, list_games, stored_positions
 
 NODES = 100_000
 PV_MOVES = 8
@@ -69,11 +69,11 @@ def _analyse_batch(fens: list[str]) -> list[PositionAnalysis]:
     return results
 
 
-def pending_positions(db_path: Path, username: str) -> list[str]:
+def pending_positions(db_path: Path, games: Sequence[Game]) -> list[str]:
     conn = connect(db_path)
     done = stored_positions(conn)
     pending: dict[str, str] = {}
-    for game in list_games(conn, username):
+    for game in games:
         for board in game_boards(game.pgn):
             position = board.epd()
             if position not in done:
@@ -82,23 +82,37 @@ def pending_positions(db_path: Path, username: str) -> list[str]:
     return list(pending.values())
 
 
-def analyse_all(db_path: Path, username: str, stockfish_path: Path, workers: int) -> None:
-    fens = pending_positions(db_path, username)
-    print(f"{len(fens)} positions to analyse", flush=True)
+def analyse_games(
+    db_path: Path,
+    games: Sequence[Game],
+    stockfish_path: Path,
+    workers: int,
+    on_progress: Callable[[int, int], None],
+) -> None:
+    fens = pending_positions(db_path, games)
+    on_progress(0, len(fens))
     batches = [fens[start : start + BATCH] for start in range(0, len(fens), BATCH)]
     conn = connect(db_path)
     buffered: list[PositionAnalysis] = []
     finished = 0
-    with Pool(workers, _init_worker, (str(stockfish_path),)) as pool:
+    # Spawned, because this also runs in a thread of the API server, where forking is unsafe.
+    with get_context("spawn").Pool(workers, _init_worker, (str(stockfish_path),)) as pool:
         for results in pool.imap_unordered(_analyse_batch, batches):
             buffered.extend(results)
             finished += len(results)
             if len(buffered) >= SAVE_EVERY:
                 insert_position_analyses(conn, buffered)
                 buffered = []
-                print(f"{finished}/{len(fens)}", flush=True)
+            on_progress(finished, len(fens))
     insert_position_analyses(conn, buffered)
-    print(f"done {finished}/{len(fens)}", flush=True)
+    conn.close()
+
+
+def analyse_all(db_path: Path, username: str, stockfish_path: Path, workers: int) -> None:
+    conn = connect(db_path)
+    games = list_games(conn, username)
+    conn.close()
+    analyse_games(db_path, games, stockfish_path, workers, lambda done, total: print(f"{done}/{total}", flush=True))
 
 
 def main() -> None:
