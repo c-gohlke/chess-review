@@ -473,6 +473,14 @@
           "pgn": {
             "type": "string",
             "title": "Pgn"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "white",
+              "black"
+            ],
+            "title": "Colour"
           }
         },
         "type": "object",
@@ -483,7 +491,8 @@
           "result",
           "time_class",
           "played_at",
-          "pgn"
+          "pgn",
+          "colour"
         ],
         "title": "GameDetail"
       },

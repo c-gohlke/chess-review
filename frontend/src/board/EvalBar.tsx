@@ -15,13 +15,21 @@ function whiteShare({ cp, mate }: Evaluation, whiteToMove: boolean): number {
 	return 50 + (Math.atan((cp ?? 0) / 300) / Math.PI) * 100;
 }
 
-export function EvalBar({ evaluation, whiteToMove }: { evaluation: Evaluation | null; whiteToMove: boolean }) {
+export function EvalBar({
+	evaluation,
+	whiteToMove,
+	whiteAtBottom,
+}: {
+	evaluation: Evaluation | null;
+	whiteToMove: boolean;
+	whiteAtBottom: boolean;
+}) {
 	const height = `${evaluation ? whiteShare(evaluation, whiteToMove) : 50}%`;
 	return (
 		<div
 			role="img"
 			aria-label="White's share of the evaluation"
-			className="flex w-4 shrink-0 flex-col justify-end overflow-hidden rounded bg-gray-800"
+			className={`flex w-4 shrink-0 flex-col overflow-hidden rounded bg-gray-800 ${whiteAtBottom ? "justify-end" : "justify-start"}`}
 		>
 			<div data-testid="eval-white" className="bg-gray-100 transition-[height]" style={{ height }} />
 		</div>

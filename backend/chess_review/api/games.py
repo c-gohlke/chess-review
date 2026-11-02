@@ -17,7 +17,7 @@ from chess_review.db import (
     previous_game,
 )
 from chess_review.importers.chesscom import import_games
-from chess_review.patterns.openings import parse_opening
+from chess_review.patterns.openings import Colour, colour_played, parse_opening
 from chess_review.patterns.ratings import rating_change
 
 router = APIRouter()
@@ -39,6 +39,7 @@ class GameListItem(GameSummary):
 
 class GameDetail(GameSummary):
     pgn: str
+    colour: Colour
 
 
 class ImportResult(BaseModel):
@@ -87,4 +88,8 @@ def get_game_detail(game_id: int, conn: Db) -> GameDetail:
     game = get_game(conn, game_id)
     if game is None:
         raise HTTPException(status_code=404, detail="game not found")
-    return GameDetail.model_validate(game, from_attributes=True)
+    return GameDetail(
+        **GameSummary.model_validate(game, from_attributes=True).model_dump(),
+        pgn=game.pgn,
+        colour=colour_played(game),
+    )
