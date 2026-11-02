@@ -72,7 +72,7 @@ export function Games({
 				</button>
 			</div>
 			{importMessage && <p className="mb-4">{importMessage}</p>}
-			{loadError && <p className="text-red-600">{loadError}</p>}
+			{loadError && <p className="text-red-600 dark:text-red-400">{loadError}</p>}
 			{!loadError && games?.length === 0 && <p>No games yet</p>}
 			<ul className="flex flex-col gap-2">
 				{games?.map((game) => (

@@ -95,7 +95,9 @@ function App() {
 					</select>
 				</div>
 			)}
-			{tab !== "play" && usersError && <p className="mx-auto w-full max-w-[600px] text-red-600">{usersError}</p>}
+			{tab !== "play" && usersError && (
+				<p className="mx-auto w-full max-w-[600px] text-red-600 dark:text-red-400">{usersError}</p>
+			)}
 			{tab === "play" && <Board />}
 			{tab === "games" &&
 				users &&

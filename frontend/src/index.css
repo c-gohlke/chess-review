@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+:root {
+	color-scheme: light dark;
+}
+
+body {
+	background: Canvas;
+	color: CanvasText;
+}
+
 /* No fallback on purpose: with --piece-scale unset the transform computes to `none`, so idle pieces
    render exactly as before instead of through a scale(1) layer. */
 [data-piece] {
