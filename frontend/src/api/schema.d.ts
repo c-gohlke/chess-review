@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/statistics/forks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Fork Statistics */
+        get: operations["get_fork_statistics_api_statistics_forks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -153,6 +170,24 @@ export interface components {
             cp: number | null;
             /** Mate */
             mate: number | null;
+        };
+        /** ForkKind */
+        ForkKind: {
+            /** Name */
+            name: string;
+            /** Losses */
+            losses: number;
+        };
+        /** ForkSummary */
+        ForkSummary: {
+            /** Analysed Losses */
+            analysed_losses: number;
+            /** Losses With Fork */
+            losses_with_fork: number;
+            /** Decided By Fork */
+            decided_by_fork: number;
+            /** Kinds */
+            kinds: components["schemas"]["ForkKind"][];
         };
         /** GameDetail */
         GameDetail: {
@@ -465,6 +500,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Evaluation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_fork_statistics_api_statistics_forks_get: {
+        parameters: {
+            query: {
+                username: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForkSummary"];
                 };
             };
             /** @description Validation Error */

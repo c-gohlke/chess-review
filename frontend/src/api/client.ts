@@ -5,6 +5,7 @@ export type GameDetail = components["schemas"]["GameDetail"];
 export type Evaluation = components["schemas"]["Evaluation"];
 export type OpeningStats = components["schemas"]["OpeningStats"];
 export type OpeningSummary = components["schemas"]["OpeningSummary"];
+export type ForkSummary = components["schemas"]["ForkSummary"];
 export type TimeClass = components["schemas"]["TimeClass"];
 export type Colour = "white" | "black";
 
@@ -26,6 +27,11 @@ export async function listGames(username: string, limit: number, offset: number)
 
 export async function getGame(id: number): Promise<GameDetail> {
 	const response = await checkOk(await fetch(`/api/games/${id}`));
+	return response.json();
+}
+
+export async function getForkStatistics(username: string): Promise<ForkSummary> {
+	const response = await checkOk(await fetch(`/api/statistics/forks?${new URLSearchParams({ username })}`));
 	return response.json();
 }
 

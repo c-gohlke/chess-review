@@ -387,6 +387,45 @@
         }
       }
     },
+    "/api/statistics/forks": {
+      "get": {
+        "summary": "Get Fork Statistics",
+        "operationId": "get_fork_statistics_api_statistics_forks_get",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForkSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Health",
@@ -444,6 +483,55 @@
         ],
         "title": "Evaluation",
         "description": "From White's point of view. Exactly one of the two is set; mate 0 means the position is checkmate."
+      },
+      "ForkKind": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "losses": {
+            "type": "integer",
+            "title": "Losses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "losses"
+        ],
+        "title": "ForkKind"
+      },
+      "ForkSummary": {
+        "properties": {
+          "analysed_losses": {
+            "type": "integer",
+            "title": "Analysed Losses"
+          },
+          "losses_with_fork": {
+            "type": "integer",
+            "title": "Losses With Fork"
+          },
+          "decided_by_fork": {
+            "type": "integer",
+            "title": "Decided By Fork"
+          },
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/ForkKind"
+            },
+            "type": "array",
+            "title": "Kinds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "analysed_losses",
+          "losses_with_fork",
+          "decided_by_fork",
+          "kinds"
+        ],
+        "title": "ForkSummary"
       },
       "GameDetail": {
         "properties": {

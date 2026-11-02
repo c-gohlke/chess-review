@@ -10,7 +10,15 @@ from pathlib import Path
 
 import chess
 
-from chess_review.db import Game, Result, connect, list_games, load_position_analyses
+from chess_review.db import (
+    Game,
+    GameReason,
+    Result,
+    connect,
+    list_games,
+    load_position_analyses,
+    replace_game_reasons,
+)
 from chess_review.patterns.associations import Outcome, associate, expected_score
 from chess_review.patterns.habits import base_seconds, is_white, opening_habits, session_context
 from chess_review.patterns.openings import parse_opening
@@ -142,6 +150,10 @@ def classify(db_path: Path, username: str, out_dir: Path) -> None:
         steps = build_steps(game.pgn, analyses)
         if steps:
             reasons.append(diagnose_game(game, steps))
+    replace_game_reasons(
+        conn,
+        [GameReason(item.game.id, item.own.primary, item.own.tags) for item in reasons if item.game.id is not None],
+    )
     conn.close()
 
     write_csv(out_dir / "game-reasons.csv", [_reason_row(item) for item in reversed(reasons)])
