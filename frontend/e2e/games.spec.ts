@@ -35,7 +35,7 @@ const GAMES = [
 	},
 ];
 
-const GAME_DETAIL = { ...GAMES[0], pgn: "1. e4 e5 2. Nf3 Nc6" };
+const GAME_DETAIL = { ...GAMES[0], pgn: "1. e4 e5 2. Nf3 Nc6", colour: "white" };
 
 test("games list, selecting a game, and navigating moves", async ({ page }) => {
 	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));

@@ -10,7 +10,7 @@ function fenAtPly(moves: string[], ply: number): string {
 	return game.fen();
 }
 
-export function GameViewer({ pgn }: { pgn: string }) {
+export function GameViewer({ pgn, colour }: { pgn: string; colour: "white" | "black" }) {
 	const [moves] = useState(() => {
 		const game = new Chess();
 		game.loadPgn(pgn);
@@ -52,9 +52,9 @@ export function GameViewer({ pgn }: { pgn: string }) {
 	return (
 		<div className="mx-auto w-full max-w-[600px]">
 			<div className="flex gap-2">
-				<EvalBar evaluation={evaluation} whiteToMove={fen.split(" ")[1] === "w"} />
+				<EvalBar evaluation={evaluation} whiteToMove={fen.split(" ")[1] === "w"} whiteAtBottom={colour === "white"} />
 				<div className="min-w-0 flex-1">
-					<Chessboard options={{ id: "game-viewer", position: fen, allowDragging: false }} />
+					<Chessboard options={{ id: "game-viewer", position: fen, allowDragging: false, boardOrientation: colour }} />
 				</div>
 			</div>
 			<p className="mt-2 min-h-6 text-center font-bold tabular-nums">

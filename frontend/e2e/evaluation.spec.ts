@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 
 test.beforeEach(({ page }) => page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] })));
 
@@ -12,6 +12,7 @@ const GAME = {
 	opening: "Barnes Opening",
 	rating_change: -8,
 	pgn: "1. f3 e5 2. g4 Qh4#",
+	colour: "white",
 };
 
 // Keyed by the moves played so far, which is the piece placement's only change in this game.
@@ -23,9 +24,9 @@ function evaluationFor(fen: string) {
 	return { cp: 20, mate: null };
 }
 
-async function openGame(page: Page) {
-	await page.route("**/api/games?*", (route) => route.fulfill({ json: [GAME] }));
-	await page.route("**/api/games/1", (route) => route.fulfill({ json: GAME }));
+async function openGame(page: Page, game = GAME) {
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: [game] }));
+	await page.route("**/api/games/1", (route) => route.fulfill({ json: game }));
 	await page.route("**/api/evaluation?*", (route) => {
 		const fen = new URL(route.request().url()).searchParams.get("fen") ?? "";
 		return route.fulfill({ json: evaluationFor(fen) });
@@ -39,6 +40,31 @@ async function whiteShare(page: Page): Promise<number> {
 	const bar = page.getByTestId("eval-white");
 	return bar.evaluate((element) => Number.parseFloat(element.style.height));
 }
+
+async function top(locator: Locator): Promise<number> {
+	await expect(locator).toBeVisible();
+	const box = await locator.boundingBox();
+	if (!box) throw new Error("element has no box");
+	return box.y;
+}
+
+test("a game played as white has white at the bottom", async ({ page }) => {
+	await openGame(page);
+
+	const rankOne = await top(page.locator('[data-square="e1"]'));
+	expect(rankOne).toBeGreaterThan(await top(page.locator('[data-square="e8"]')));
+	const whiteShareTop = await top(page.getByTestId("eval-white"));
+	expect(whiteShareTop).toBeGreaterThan(await top(page.getByRole("img", { name: /evaluation/ })));
+});
+
+test("a game played as black has black at the bottom", async ({ page }) => {
+	await openGame(page, { ...GAME, colour: "black" });
+
+	const rankOne = await top(page.locator('[data-square="e1"]'));
+	expect(rankOne).toBeLessThan(await top(page.locator('[data-square="e8"]')));
+	const whiteShareTop = await top(page.getByTestId("eval-white"));
+	expect(whiteShareTop).toBe(await top(page.getByRole("img", { name: /evaluation/ })));
+});
 
 test("the evaluation follows the replayed position", async ({ page }) => {
 	await openGame(page);

@@ -114,7 +114,7 @@ test("a variation opens its games, and they follow the filters", async ({ page }
 
 test("a game opens its replay, and Back returns to the expanded opening", async ({ page }) => {
 	await page.route("**/api/openings/games?*", (route) => route.fulfill({ json: [GAME] }));
-	await page.route("**/api/games/7", (route) => route.fulfill({ json: { ...GAME, pgn: "1. e4 e5" } }));
+	await page.route("**/api/games/7", (route) => route.fulfill({ json: { ...GAME, pgn: "1. e4 e5", colour: "white" } }));
 	await page.route("**/api/evaluation?*", (route) => route.fulfill({ json: { cp: 20, mate: null } }));
 
 	await openVariation(page);

@@ -171,6 +171,11 @@ export interface components {
             played_at: string;
             /** Pgn */
             pgn: string;
+            /**
+             * Colour
+             * @enum {string}
+             */
+            colour: "white" | "black";
         };
         /** GameListItem */
         GameListItem: {
