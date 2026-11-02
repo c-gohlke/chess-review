@@ -49,11 +49,11 @@ function sumNet(openings: OpeningStats[]): number {
 function ScoreBar({ score }: { score: number }) {
 	const width = `${Math.abs(score - 50) * 2}%`;
 	return (
-		<div className="grid h-2.5 grid-cols-2 bg-gray-100">
+		<div className="grid h-2.5 grid-cols-2 bg-gray-100 dark:bg-gray-800">
 			<div className="flex justify-end border-r border-gray-500">
 				{score < 50 && <div className="bg-orange-500" style={{ width }} />}
 			</div>
-			<div className="flex">{score > 50 && <div className="bg-blue-700" style={{ width }} />}</div>
+			<div className="flex">{score > 50 && <div className="bg-blue-700 dark:bg-blue-400" style={{ width }} />}</div>
 		</div>
 	);
 }
@@ -67,7 +67,7 @@ function OpeningRow({ opening }: { opening: OpeningStats }) {
 				<span className="font-bold tabular-nums">{Math.round(score)}%</span>
 			</div>
 			<ScoreBar score={score} />
-			<span className="text-sm text-gray-600 tabular-nums">
+			<span className="text-sm text-gray-600 dark:text-gray-300 tabular-nums">
 				{opening.games} {opening.games === 1 ? "game" : "games"} · {formatNet(opening.net)} · {opening.wins}W{" "}
 				{opening.draws}D {opening.losses}L
 			</span>
@@ -111,7 +111,7 @@ function VariationRow({
 			</button>
 			{open && (
 				<ul className="mt-3 flex flex-col gap-2 pl-3">
-					{error && <li className="text-red-600">{error}</li>}
+					{error && <li className="text-red-600 dark:text-red-400">{error}</li>}
 					{games.map((game) => (
 						<li key={game.id}>
 							<GameRow game={game} onSelect={onSelect} />
@@ -144,7 +144,7 @@ function FamilyRow({
 				<OpeningRow opening={family} />
 			</button>
 			{open && (
-				<ul className="mb-3 flex flex-col gap-3 rounded bg-blue-50 p-3">
+				<ul className="mb-3 flex flex-col gap-3 rounded bg-blue-50 p-3 dark:bg-[#33415c]">
 					{family.variations.map((variation) => (
 						<VariationRow
 							key={variation.name}
@@ -212,7 +212,7 @@ export function Openings({ player, onSelect }: { player: string; onSelect: (id: 
 					))}
 				</select>
 			</div>
-			{error && <p className="text-red-600">{error}</p>}
+			{error && <p className="text-red-600 dark:text-red-400">{error}</p>}
 			{summary && (
 				<div className="grid grid-cols-2 gap-2">
 					{(["white", "black"] as const).map((option) => (
@@ -240,7 +240,7 @@ export function Openings({ player, onSelect }: { player: string; onSelect: (id: 
 					/>
 				))}
 				{once.length > 0 && (
-					<li className="border-t py-3 text-sm text-gray-600">
+					<li className="border-t py-3 text-sm text-gray-600 dark:text-gray-400">
 						{once.length} played once: {formatNet(sumNet(once))}
 					</li>
 				)}

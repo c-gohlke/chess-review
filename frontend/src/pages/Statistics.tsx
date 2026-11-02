@@ -19,7 +19,7 @@ function Forks({ player, forks }: { player: string; forks: ForkSummary }) {
 			</p>
 			<table className="mt-4 w-full">
 				<thead>
-					<tr className="text-left text-sm text-gray-600">
+					<tr className="text-left text-sm text-gray-600 dark:text-gray-400">
 						<th className="py-1 font-normal">Kind of fork</th>
 						<th className="py-1 text-right font-normal">Losses</th>
 						<th className="py-1 text-right font-normal">Share</th>
@@ -35,7 +35,9 @@ function Forks({ player, forks }: { player: string; forks: ForkSummary }) {
 					))}
 				</tbody>
 			</table>
-			<p className="mt-3 text-sm text-gray-600">A loss with two kinds of fork counts once under each kind.</p>
+			<p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+				A loss with two kinds of fork counts once under each kind.
+			</p>
 		</>
 	);
 }
@@ -53,7 +55,7 @@ export function Statistics({ player }: { player: string }) {
 	return (
 		<section className="mx-auto w-full max-w-[600px]">
 			<h2 className="mb-2 text-lg font-bold">Losses to forks</h2>
-			{error && <p className="text-red-600">{error}</p>}
+			{error && <p className="text-red-600 dark:text-red-400">{error}</p>}
 			{forks && <Forks player={player} forks={forks} />}
 		</section>
 	);

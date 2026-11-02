@@ -13,8 +13,8 @@ type Props = {
 
 type Block = { key: Moment } | { run: number[] };
 
-const COSTLY = "bg-amber-100 font-bold text-amber-900";
-const DECIDING = "bg-red-100 font-bold text-red-900";
+const COSTLY = "bg-amber-100 dark:bg-amber-950 font-bold text-amber-900 dark:text-amber-200";
+const DECIDING = "bg-red-100 dark:bg-red-950 font-bold text-red-900 dark:text-red-200";
 
 // Key moves get a block of their own; the moves between them run on as one paragraph.
 function toBlocks(moveCount: number, moments: Moment[]): Block[] {
@@ -59,7 +59,7 @@ function MoveButton({
 		<button
 			type="button"
 			aria-current={isCurrent ? "step" : undefined}
-			className={`rounded px-1 font-mono ${emphasis} ${isCurrent ? "outline-2 outline-blue-600" : ""}`}
+			className={`rounded px-1 font-mono ${emphasis} ${isCurrent ? "outline-2 outline-blue-600 dark:outline-blue-400" : ""}`}
 			onClick={() => onSelectPly(index + 1)}
 		>
 			{san}
@@ -76,9 +76,11 @@ function KeyMove({
 }: Pick<Props, "moves" | "ply" | "onSelectPly"> & { moment: Moment }) {
 	return (
 		<div className="my-2">
-			<span className="font-mono text-sm text-gray-600">{moveNumber(moment.ply)}</span>{" "}
+			<span className="font-mono text-sm text-gray-600 dark:text-gray-400">{moveNumber(moment.ply)}</span>{" "}
 			<MoveButton index={moment.ply} san={moves[moment.ply]} ply={ply} moment={moment} onSelectPly={onSelectPly} />
-			<p className={`mt-1 border-l-2 pl-2 text-sm ${moment.is_decisive ? "border-red-700" : "border-amber-700"}`}>
+			<p
+				className={`mt-1 border-l-2 pl-2 text-sm ${moment.is_decisive ? "border-red-700 dark:border-red-400" : "border-amber-700 dark:border-amber-400"}`}
+			>
 				<strong>
 					{moment.is_decisive ? "Deciding move" : "Costly move"} by {moment.player}.
 				</strong>{" "}
@@ -94,7 +96,7 @@ function MoveRun({ run, moves, ply, onSelectPly }: Pick<Props, "moves" | "ply" |
 			{run.map((index) => (
 				<span key={index}>
 					{(index % 2 === 0 || index === run[0]) && (
-						<span className="font-mono text-sm text-gray-600">{moveNumber(index)} </span>
+						<span className="font-mono text-sm text-gray-600 dark:text-gray-400">{moveNumber(index)} </span>
 					)}
 					<MoveButton index={index} san={moves[index]} ply={ply} onSelectPly={onSelectPly} />{" "}
 				</span>
@@ -131,7 +133,7 @@ export function GameStatistics({ analysis, moves, ply, onSelectPly }: Props) {
 			)}
 			{analysis && analysis.moments.length === 0 && <p className="mb-2">No costly errors found.</p>}
 			{analysis && analysis.moments.length > 0 && (
-				<ul className="mb-2 text-sm text-gray-600">
+				<ul className="mb-2 text-sm text-gray-600 dark:text-gray-400">
 					<li>
 						<span className={`rounded px-1 font-mono ${COSTLY}`}>?</span> Costly move, gave away a lot of win chance
 					</li>
