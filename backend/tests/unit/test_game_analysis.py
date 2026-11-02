@@ -20,7 +20,10 @@ from chess_review.patterns.game_analysis import build_game_analysis, tag_label
 
 OWN = GameReason(1, "fork", ["fork_knight"])
 OPPONENT = GameReason(1, "hanging_piece", ["hanging_piece"])
-MOMENTS = [GameMoment(1, 12, False, ["pawn_loss"]), GameMoment(1, 21, True, ["fork_knight_royal", "low_clock_blunder"])]
+MOMENTS = [
+    GameMoment(1, 12, False, 20, ["pawn_loss"]),
+    GameMoment(1, 21, True, 59, ["fork_knight_royal", "low_clock_blunder"]),
+]
 
 
 @pytest.mark.parametrize(
@@ -46,6 +49,7 @@ def test_analysis_names_the_player_and_move_of_each_moment(game_1: Game) -> None
         (21, 11, "bob"),
     ]
     assert analysis.moments[1].is_decisive
+    assert analysis.moments[1].win_lost == 59
     assert analysis.moments[1].labels == ["Allowed a knight fork, royal (king and queen)", "Low on time"]
 
 

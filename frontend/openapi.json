@@ -714,6 +714,10 @@
             "type": "boolean",
             "title": "Is Decisive"
           },
+          "win_lost": {
+            "type": "integer",
+            "title": "Win Lost"
+          },
           "labels": {
             "items": {
               "type": "string"
@@ -728,6 +732,7 @@
           "move_number",
           "player",
           "is_decisive",
+          "win_lost",
           "labels"
         ],
         "title": "Moment"

@@ -260,6 +260,8 @@ export interface components {
             player: string;
             /** Is Decisive */
             is_decisive: boolean;
+            /** Win Lost */
+            win_lost: number;
             /** Labels */
             labels: string[];
         };

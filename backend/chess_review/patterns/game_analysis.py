@@ -43,6 +43,7 @@ class Moment:
     move_number: int
     player: str
     is_decisive: bool
+    win_lost: int  # win-percentage points this move gave away
     labels: list[str]
 
 
@@ -73,6 +74,7 @@ def build_game_analysis(game: Game, own: GameReason, opponent: GameReason, momen
                 move_number=moment.ply // 2 + 1,
                 player=game.black if moment.ply % 2 else game.white,
                 is_decisive=moment.is_decisive,
+                win_lost=moment.win_lost,
                 labels=[tag_label(tag) for tag in moment.tags],
             )
             for moment in moments

@@ -69,8 +69,15 @@ test("a game played as black has black at the bottom", async ({ page }) => {
 const ANALYSIS = {
 	decided_by: "Allowed a mate",
 	moments: [
-		{ ply: 2, move_number: 2, player: "alice", is_decisive: true, labels: ["Allowed mate in 1", "Low on time"] },
-		{ ply: 3, move_number: 2, player: "bob", is_decisive: false, labels: ["Hung a piece"] },
+		{
+			ply: 2,
+			move_number: 2,
+			player: "alice",
+			is_decisive: true,
+			win_lost: 59,
+			labels: ["Allowed mate in 1", "Low on time"],
+		},
+		{ ply: 3, move_number: 2, player: "bob", is_decisive: false, win_lost: 20, labels: ["Hung a piece"] },
 	],
 };
 
@@ -78,10 +85,14 @@ test("the game's statistics link to their moves", async ({ page }) => {
 	await openGame(page, { ...GAME, analysis: ANALYSIS } as typeof GAME);
 
 	await expect(page.getByText("Decided by:")).toContainText("Allowed a mate");
-	await page.getByRole("button", { name: /Move 2\. g4 alice Deciding move Allowed mate in 1, Low on time/ }).click();
+	await expect(
+		page.getByText("Deciding move by alice. Allowed mate in 1, Low on time. Gave away 59 points of win chance."),
+	).toBeVisible();
+	await expect(page.getByRole("button", { name: "f3", exact: true })).toBeVisible();
+	await page.getByRole("button", { name: "g4??" }).click();
 	await expect(page.getByText("3 / 4")).toBeVisible();
 
-	await page.getByRole("button", { name: /Move 2… Qh4# bob/ }).click();
+	await page.getByRole("button", { name: "Qh4#?" }).click();
 	await expect(page.getByText("4 / 4")).toBeVisible();
 });
 
@@ -98,6 +109,8 @@ test("an unanalysed game says so", async ({ page }) => {
 	await openGame(page);
 
 	await expect(page.getByText("This game has not been analysed yet.")).toBeVisible();
+	await page.getByRole("button", { name: "g4" }).click();
+	await expect(page.getByText("3 / 4")).toBeVisible();
 });
 
 test("the evaluation follows the replayed position", async ({ page }) => {

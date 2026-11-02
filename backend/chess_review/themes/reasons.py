@@ -61,6 +61,7 @@ class Diagnosis:
     decisive_move: int | None
     decisive_ply: int | None = None
     moments: dict[int, list[str]] = field(default_factory=dict)
+    win_lost: dict[int, int] = field(default_factory=dict)
 
 
 def win_percent(analysis: PositionAnalysis, board: chess.Board, color: chess.Color) -> float:
@@ -259,4 +260,5 @@ def diagnose(
         decisive.move_number if decisive else None,
         decisive.index if decisive else None,
         by_move,
+        {step.index: round(step.loss) for step in own if step.index in by_move},
     )

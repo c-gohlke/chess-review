@@ -146,7 +146,10 @@ def summarize(reasons: list[GameReasons]) -> dict[str, object]:
 
 
 def _moments(game_id: int, diagnosis: Diagnosis) -> list[GameMoment]:
-    return [GameMoment(game_id, ply, ply == diagnosis.decisive_ply, tags) for ply, tags in diagnosis.moments.items()]
+    return [
+        GameMoment(game_id, ply, ply == diagnosis.decisive_ply, diagnosis.win_lost[ply], tags)
+        for ply, tags in diagnosis.moments.items()
+    ]
 
 
 def store_reasons(conn: sqlite3.Connection, reasons: list[GameReasons]) -> None:
