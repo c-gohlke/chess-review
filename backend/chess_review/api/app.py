@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from chess_review.api.evaluation import router as evaluation_router
 from chess_review.api.games import router as games_router
 from chess_review.api.openings import router as openings_router
+from chess_review.api.statistics import router as statistics_router
 
 
 def create_app(static_dir: Path, db_path: Path, stockfish_path: Path) -> FastAPI:
@@ -14,6 +15,7 @@ def create_app(static_dir: Path, db_path: Path, stockfish_path: Path) -> FastAPI
     app.include_router(games_router)
     app.include_router(openings_router)
     app.include_router(evaluation_router)
+    app.include_router(statistics_router)
     app.state.db_path = db_path
     app.state.stockfish_path = stockfish_path
 

@@ -4,8 +4,9 @@ import { Board } from "./board/Board";
 import { Games } from "./pages/Games";
 import { Openings } from "./pages/Openings";
 import { Review } from "./pages/Review";
+import { Statistics } from "./pages/Statistics";
 
-type Tab = "play" | "games" | "openings";
+type Tab = "play" | "games" | "openings" | "statistics";
 
 const PLAYER_KEY = "chess-review-player";
 
@@ -39,7 +40,7 @@ function App() {
 
 	return (
 		<main className="p-4">
-			<div className="mx-auto mb-4 flex w-full max-w-[600px] gap-2">
+			<div className="mx-auto mb-4 flex w-full max-w-[600px] flex-wrap gap-2">
 				<button
 					type="button"
 					className={`rounded px-4 py-2 ${tab === "play" ? "bg-blue-600 text-white" : "border"}`}
@@ -66,6 +67,16 @@ function App() {
 					}}
 				>
 					Openings
+				</button>
+				<button
+					type="button"
+					className={`rounded px-4 py-2 ${tab === "statistics" ? "bg-blue-600 text-white" : "border"}`}
+					onClick={() => {
+						setTab("statistics");
+						setGameId(null);
+					}}
+				>
+					Statistics
 				</button>
 			</div>
 			{tab !== "play" && users && users.length > 1 && (
@@ -95,7 +106,10 @@ function App() {
 				))}
 			{tab === "openings" && gameId !== null && <Review gameId={gameId} onBack={() => setGameId(null)} />}
 			{/* Stays mounted behind a replay, so Back returns to the same expanded rows and filters. */}
-			{tab === "openings" && users && player === null && <p className="mx-auto w-full max-w-[600px]">No games yet</p>}
+			{(tab === "openings" || tab === "statistics") && users && player === null && (
+				<p className="mx-auto w-full max-w-[600px]">No games yet</p>
+			)}
+			{tab === "statistics" && player && <Statistics key={player} player={player} />}
 			{tab === "openings" && player && (
 				<div hidden={gameId !== null}>
 					<Openings key={player} player={player} onSelect={setGameId} />

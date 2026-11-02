@@ -31,6 +31,12 @@ CREATE TABLE IF NOT EXISTS position_analyses (
     pv TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS game_reasons (
+    game_id INTEGER PRIMARY KEY REFERENCES games (id),
+    decided_by TEXT NOT NULL,
+    tags TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS games_by_rating_pool ON games (username, time_class, played_at);
 """
 
@@ -78,6 +84,15 @@ class PositionAnalysis:
     cp: int | None
     mate: int | None
     pv: str
+
+
+@dataclass(frozen=True)
+class GameReason:
+    """What went wrong for the game's player; written by themes/classify.py."""
+
+    game_id: int
+    decided_by: str
+    tags: list[str]
 
 
 def connect(path: Path) -> sqlite3.Connection:
@@ -180,6 +195,26 @@ def insert_evaluation(conn: sqlite3.Connection, position: str, evaluation: Evalu
 
 def stored_positions(conn: sqlite3.Connection) -> set[str]:
     return {row["position"] for row in conn.execute("SELECT position FROM position_analyses")}
+
+
+def replace_game_reasons(conn: sqlite3.Connection, reasons: list[GameReason]) -> None:
+    conn.executemany(
+        "INSERT OR REPLACE INTO game_reasons (game_id, decided_by, tags) VALUES (?, ?, ?)",
+        [(reason.game_id, reason.decided_by, " ".join(reason.tags)) for reason in reasons],
+    )
+    conn.commit()
+
+
+def list_loss_reasons(conn: sqlite3.Connection, username: str) -> list[GameReason]:
+    rows = conn.execute(
+        """
+        SELECT game_reasons.game_id, game_reasons.decided_by, game_reasons.tags
+        FROM game_reasons JOIN games ON games.id = game_reasons.game_id
+        WHERE games.username = ? AND games.result = ?
+        """,
+        (username, Result.LOSS),
+    )
+    return [GameReason(row["game_id"], row["decided_by"], row["tags"].split()) for row in rows]
 
 
 def load_position_analyses(conn: sqlite3.Connection) -> dict[str, PositionAnalysis]:
