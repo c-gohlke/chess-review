@@ -88,6 +88,7 @@ def _rook_pawn_habits(own: list[tuple[chess.Board, chess.Move]]) -> dict[str, bo
             is_a_file = chess.square_file(move.from_square) == 0
             habits["a_pawn_no_reason" if is_a_file else "h_pawn_no_reason"] = True
     habits["rook_pawn_no_reason"] = habits["a_pawn_no_reason"] or habits["h_pawn_no_reason"]
+    habits["rook_pawn_step"] = any(move in QUIET_ROOK_PAWN for move in moves)
     return habits
 
 
@@ -119,11 +120,18 @@ def _minor_pieces(color: chess.Color) -> tuple[chess.Piece, chess.Piece]:
 
 def _clock_habits(pgn: str, white: bool) -> dict[str, bool]:
     base = base_seconds(pgn)
-    own_clocks = clocks(pgn)[0 if white else 1 :: 2]
-    if base is None or len(own_clocks) < DEVELOPED_BY:
+    all_clocks = clocks(pgn)
+    own_clocks = all_clocks[0 if white else 1 :: 2]
+    enemy_clocks = all_clocks[1 if white else 0 :: 2]
+    if base is None or min(len(own_clocks), len(enemy_clocks)) < HABIT_MOVES:
         return {}
     share_spent = (base - own_clocks[DEVELOPED_BY - 1]) / base
-    return {"slow_opening": share_spent >= 0.25, "instant_opening": share_spent <= 0.05}
+    deficit = (enemy_clocks[HABIT_MOVES - 1] - own_clocks[HABIT_MOVES - 1]) / base
+    return {
+        "slow_opening": share_spent >= 0.25,
+        "instant_opening": share_spent <= 0.05,
+        "behind_on_clock": deficit >= 0.1,
+    }
 
 
 def opening_habits(pgn: str, white: bool) -> dict[str, bool] | None:

@@ -37,6 +37,20 @@ def test_a3_against_a_bishop_on_b4_has_a_reason() -> None:
     habits = opening_habits(PURPOSEFUL, white=True)
     assert habits is not None
     assert not habits["a_pawn_no_reason"]
+    assert habits["rook_pawn_step"]
+
+
+def test_clock_habits_compare_time_spent_with_the_opponent() -> None:
+    own_clock = "{[%clk 0:02:00]}"
+    enemy_clock = "{[%clk 0:03:00]}"
+    moves = " ".join(
+        f"{n}. Nf3 {own_clock} Nf6 {enemy_clock} {n + 1}. Ng1 {own_clock} Ng8 {enemy_clock}" for n in range(1, 25, 2)
+    )
+    habits = opening_habits(f'[TimeControl "180"]\n\n{moves} *', white=True)
+    assert habits is not None
+    assert habits["slow_opening"]
+    assert habits["behind_on_clock"]
+    assert not habits["instant_opening"]
 
 
 def test_short_games_have_no_habits() -> None:
