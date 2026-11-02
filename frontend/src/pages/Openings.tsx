@@ -67,7 +67,7 @@ function OpeningRow({ opening }: { opening: OpeningStats }) {
 				<span className="font-bold tabular-nums">{Math.round(score)}%</span>
 			</div>
 			<ScoreBar score={score} />
-			<span className="text-sm text-gray-600 dark:text-gray-400 tabular-nums">
+			<span className="text-sm text-gray-600 dark:text-gray-300 tabular-nums">
 				{opening.games} {opening.games === 1 ? "game" : "games"} · {formatNet(opening.net)} · {opening.wins}W{" "}
 				{opening.draws}D {opening.losses}L
 			</span>
@@ -144,7 +144,7 @@ function FamilyRow({
 				<OpeningRow opening={family} />
 			</button>
 			{open && (
-				<ul className="mb-3 flex flex-col gap-3 rounded bg-blue-50 dark:bg-blue-950 p-3">
+				<ul className="mb-3 flex flex-col gap-3 rounded bg-blue-50 p-3 dark:bg-[#33415c]">
 					{family.variations.map((variation) => (
 						<VariationRow
 							key={variation.name}
