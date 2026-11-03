@@ -10,9 +10,12 @@ const FORKS = {
 	],
 };
 
+const ANALYSIS = { games: 10, unanalysed: 0, phase: "idle", done: 0, total: 0, error: null, running_player: null };
+
 async function openStatistics(page: Page, forks: typeof FORKS) {
 	await page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] }));
 	await page.route("**/api/statistics/forks?*", (route) => route.fulfill({ json: forks }));
+	await page.route("**/api/analysis?*", (route) => route.fulfill({ json: ANALYSIS }));
 	await page.goto("/");
 	await page.getByRole("button", { name: "Statistics" }).click();
 }
@@ -35,8 +38,27 @@ test("explains when the player's games have not been analysed", async ({ page })
 test("a failed request is shown", async ({ page }) => {
 	await page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] }));
 	await page.route("**/api/statistics/forks?*", (route) => route.fulfill({ status: 500 }));
+	await page.route("**/api/analysis?*", (route) => route.fulfill({ json: ANALYSIS }));
 	await page.goto("/");
 	await page.getByRole("button", { name: "Statistics" }).click();
 
 	await expect(page.getByText("request failed with status 500")).toBeVisible();
+});
+
+test("choosing another player in Settings shows their statistics", async ({ page }) => {
+	await page.route("**/api/users", (route) => route.fulfill({ json: ["alice", "carol"] }));
+	await page.route("**/api/analysis?*", (route) => route.fulfill({ json: ANALYSIS }));
+	await page.route("**/api/statistics/forks?*", (route) => {
+		const player = new URL(route.request().url()).searchParams.get("username");
+		return route.fulfill({ json: player === "carol" ? { ...FORKS, losses_with_fork: 50 } : FORKS });
+	});
+	await page.goto("/");
+	await page.getByRole("button", { name: "Statistics" }).click();
+	await expect(page.getByText("A fork figured in 30 of 200 analysed losses (15.0%)")).toBeVisible();
+
+	await page.getByRole("button", { name: "Settings" }).click();
+	await page.getByLabel("Player").selectOption("carol");
+	await page.getByRole("button", { name: "Statistics" }).click();
+
+	await expect(page.getByText("A fork figured in 50 of 200 analysed losses (25.0%)")).toBeVisible();
 });

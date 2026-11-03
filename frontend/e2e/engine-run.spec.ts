@@ -62,3 +62,15 @@ test("says so when the engine is busy with another player", async ({ page }) => 
 	await expect(page.getByText("The engine is busy with bob.")).toBeVisible();
 	await expect(page.getByRole("button", { name: /^Analyse/ })).toHaveCount(0);
 });
+
+test("a single game is named in the singular", async ({ page }) => {
+	await openStatistics(page, [{ ...IDLE, unanalysed: 1 }]);
+
+	await expect(page.getByRole("button", { name: "Analyse 1 game (about 1 min)" })).toBeVisible();
+});
+
+test("a long run is estimated in hours", async ({ page }) => {
+	await openStatistics(page, [{ ...IDLE, games: 9497, unanalysed: 9497 }]);
+
+	await expect(page.getByRole("button", { name: "Analyse 9497 games (about 8.7 hours)" })).toBeVisible();
+});
