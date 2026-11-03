@@ -47,7 +47,9 @@ docker build -t chess-review .
 docker run --rm -p 8000:8000 -v chess-review-data:/data chess-review
 ```
 
-The named volume holds the SQLite database, so games persist across container restarts.
+The named volume holds the SQLite database, so games persist across container restarts. The
+always-on setup in [hosting.md](hosting.md) mounts the Mac's database instead, so the container
+and the local scripts share one file.
 
 ## Principles
 
