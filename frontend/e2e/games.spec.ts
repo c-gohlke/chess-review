@@ -97,6 +97,24 @@ test("navigating moves with the left and right arrow keys stops at both ends", a
 	await expect(page.getByText("4 / 4")).toBeVisible();
 });
 
+for (const [colour, top, bottom] of [
+	["white", "bob", "alice"],
+	["black", "alice", "bob"],
+]) {
+	test(`playing ${colour}, the opponent's name is above the board and the player's below`, async ({ page }) => {
+		await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
+		await page.route("**/api/games/1", (route) => route.fulfill({ json: { ...GAME_DETAIL, colour } }));
+		await page.route("**/api/evaluation?*", (route) => route.fulfill({ json: { cp: 20, mate: null } }));
+
+		await page.goto("/");
+		await page.getByRole("button", { name: "Games" }).click();
+		await page.getByText("alice vs bob").click();
+
+		await expect(page.getByTestId("top-player")).toHaveText(top);
+		await expect(page.getByTestId("bottom-player")).toHaveText(bottom);
+	});
+}
+
 test("rows are coloured by result and show the opening and rating change", async ({ page }) => {
 	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
 

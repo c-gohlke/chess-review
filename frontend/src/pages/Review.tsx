@@ -18,7 +18,15 @@ export function Review({ gameId, onBack }: { gameId: number; onBack: () => void 
 				Back
 			</button>
 			{error && <p className="text-red-600 dark:text-red-400">{error}</p>}
-			{game && <GameViewer pgn={game.pgn} colour={game.colour} analysis={game.analysis} />}
+			{game && (
+				<GameViewer
+					pgn={game.pgn}
+					white={game.white}
+					black={game.black}
+					colour={game.colour}
+					analysis={game.analysis}
+				/>
+			)}
 		</div>
 	);
 }
