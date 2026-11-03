@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from chess_review.db import Game, connect, get_game, insert_games, list_games
+from chess_review.db import Game, connect, get_game, insert_games, latest_played_at, list_games
 
 
 def test_insert_games_is_idempotent(tmp_path: Path, game_1: Game, game_2: Game) -> None:
@@ -32,3 +32,11 @@ def test_get_missing_game_returns_none(tmp_path: Path) -> None:
     conn = connect(tmp_path / "db.sqlite3")
 
     assert get_game(conn, 999) is None
+
+
+def test_latest_played_at_is_the_players_most_recent_game(tmp_path: Path, game_1: Game, game_2: Game) -> None:
+    conn = connect(tmp_path / "db.sqlite3")
+    insert_games(conn, [game_1, game_2])
+
+    assert latest_played_at(conn, "alice") == max(game_1.played_at, game_2.played_at)
+    assert latest_played_at(conn, "nobody") is None

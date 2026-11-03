@@ -1,6 +1,9 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 
-test.beforeEach(({ page }) => page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] })));
+test.beforeEach(async ({ page }) => {
+	await page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] }));
+	await page.route("**/api/import/chesscom/*", (route) => route.fulfill({ json: { imported: 0 } }));
+});
 
 const GAME = {
 	id: 1,

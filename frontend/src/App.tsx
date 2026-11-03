@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { listUsers } from "./api/client";
+import { importChesscom, listUsers } from "./api/client";
 import { Board } from "./board/Board";
 import { Games } from "./pages/Games";
 import { Openings } from "./pages/Openings";
@@ -17,7 +17,24 @@ function App() {
 	const [usersError, setUsersError] = useState<string | null>(null);
 	const [chosenPlayer, setChosenPlayer] = useState(() => localStorage.getItem(PLAYER_KEY));
 
+	const [gamesVersion, setGamesVersion] = useState(0);
+	const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
 	const player = users?.find((user) => user === chosenPlayer) ?? users?.[0] ?? null;
+
+	function openGames() {
+		setTab("games");
+		setGameId(null);
+		if (player === null) return;
+		setSyncMessage("Checking chess.com for new games…");
+		importChesscom(player)
+			.then(({ imported }) => {
+				setSyncMessage(imported > 0 ? `${imported} new ${imported === 1 ? "game" : "games"}` : null);
+				// A new key remounts the list, so it reloads with the new games on top.
+				if (imported > 0) setGamesVersion((version) => version + 1);
+			})
+			.catch((error: Error) => setSyncMessage(`Could not check chess.com: ${error.message}`));
+	}
 
 	function choosePlayer(username: string) {
 		localStorage.setItem(PLAYER_KEY, username);
@@ -51,10 +68,7 @@ function App() {
 				<button
 					type="button"
 					className={`rounded px-4 py-2 ${tab === "games" ? "bg-blue-600 text-white" : "border"}`}
-					onClick={() => {
-						setTab("games");
-						setGameId(null);
-					}}
+					onClick={openGames}
 				>
 					Games
 				</button>
@@ -98,11 +112,14 @@ function App() {
 			{tab !== "play" && usersError && (
 				<p className="mx-auto w-full max-w-[600px] text-red-600 dark:text-red-400">{usersError}</p>
 			)}
+			{tab === "games" && gameId === null && syncMessage && (
+				<p className="mx-auto mb-4 w-full max-w-[600px] text-sm">{syncMessage}</p>
+			)}
 			{tab === "play" && <Board />}
 			{tab === "games" &&
 				users &&
 				(gameId === null ? (
-					<Games key={player} player={player} onSelect={setGameId} onImported={handleImported} />
+					<Games key={`${player}-${gamesVersion}`} player={player} onSelect={setGameId} onImported={handleImported} />
 				) : (
 					<Review gameId={gameId} onBack={() => setGameId(null)} />
 				))}

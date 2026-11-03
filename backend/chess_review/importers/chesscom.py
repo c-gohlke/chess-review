@@ -5,7 +5,7 @@ from typing import Any
 import httpx2
 from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
-from chess_review.db import Game, Result, TimeClass, insert_games
+from chess_review.db import Game, Result, TimeClass, insert_games, latest_played_at
 
 API = "https://api.chess.com/pub/player"
 # Chess.com rejects requests without a descriptive User-Agent.
@@ -24,6 +24,13 @@ def archive_urls(client: httpx2.Client, username: str) -> list[str]:
     # Chess.com only serves lowercase usernames; other casings get a 301 that httpx2 does not follow.
     urls: list[str] = get(client, f"{API}/{username.lower()}/games/archives").json()["archives"]
     return urls
+
+
+def archives_since(urls: list[str], latest: datetime | None) -> list[str]:
+    """Archives are monthly and end in /YYYY/MM; older months cannot hold new games."""
+    if latest is None:
+        return urls
+    return [url for url in urls if url.rsplit("/", 2)[-2:] >= [f"{latest.year:04}", f"{latest.month:02}"]]
 
 
 def parse_game(raw: dict[str, Any], username: str) -> Game | None:
@@ -63,7 +70,7 @@ def parse_game(raw: dict[str, Any], username: str) -> Game | None:
 
 def import_games(conn: sqlite3.Connection, username: str) -> int:
     with httpx2.Client(headers=HEADERS, timeout=60) as client:
-        urls = archive_urls(client, username)
+        urls = archives_since(archive_urls(client, username), latest_played_at(conn, username.lower()))
         games = []
         for url in urls:
             raw_games = get(client, url).json()["games"]

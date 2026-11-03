@@ -133,6 +133,11 @@ def connect(path: Path) -> sqlite3.Connection:
     return conn
 
 
+def latest_played_at(conn: sqlite3.Connection, username: str) -> datetime | None:
+    (latest,) = conn.execute("SELECT max(played_at) FROM games WHERE username = ?", (username,)).fetchone()
+    return None if latest is None else datetime.fromisoformat(latest)
+
+
 def insert_games(conn: sqlite3.Connection, games: list[Game]) -> int:
     cursor = conn.executemany(
         """
