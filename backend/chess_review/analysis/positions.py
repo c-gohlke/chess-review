@@ -19,7 +19,8 @@ from chess_review.db import Game, PositionAnalysis, connect, insert_position_ana
 NODES = 100_000
 PV_MOVES = 8
 HASH_MB = 32
-BATCH = 40
+# Small, so progress moves steadily; each worker keeps its engine open, so batches cost little.
+BATCH = 4
 SAVE_EVERY = 400
 
 _engine: chess.engine.SimpleEngine | None = None
