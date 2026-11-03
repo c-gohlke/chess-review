@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
 	await page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] }));
 	await page.route("**/api/import/chesscom/*", (route) => route.fulfill({ json: { imported: 0 } }));
+	await page.route("**/api/games/*/analysis", (route) => route.fulfill({ status: 503 }));
 });
 
 const GAMES = [

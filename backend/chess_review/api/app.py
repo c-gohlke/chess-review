@@ -9,7 +9,7 @@ from chess_review.api.evaluation import router as evaluation_router
 from chess_review.api.games import router as games_router
 from chess_review.api.openings import router as openings_router
 from chess_review.api.statistics import router as statistics_router
-from chess_review.themes.runs import AnalysisRuns, engine_job
+from chess_review.themes.runs import AnalysisRuns, engine_job, game_engine
 
 
 def create_app(static_dir: Path, db_path: Path, stockfish_path: Path) -> FastAPI:
@@ -24,6 +24,7 @@ def create_app(static_dir: Path, db_path: Path, stockfish_path: Path) -> FastAPI
     # Leaves two cores free, so the app stays responsive during a run.
     workers = max(1, (os.cpu_count() or 1) - 2)
     app.state.analysis_runs = AnalysisRuns(engine_job(db_path, stockfish_path, workers))
+    app.state.analyse_game = game_engine(db_path, stockfish_path, workers)
 
     @app.get("/api/health")
     def health() -> dict[str, str]:

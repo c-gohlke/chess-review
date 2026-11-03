@@ -99,6 +99,7 @@ test.beforeEach(async ({ page }) => {
 	await page.route("**/api/import/chesscom/*", (route) => route.fulfill({ json: { imported: 0 } }));
 	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
 	await page.route("**/api/games/1", (route) => route.fulfill({ json: GAME_DETAIL }));
+	await page.route("**/api/games/*/analysis", (route) => route.fulfill({ json: GAME_DETAIL }));
 	await page.route("**/api/evaluation?*", (route) => route.fulfill({ json: { cp: -150, mate: null } }));
 	await page.route("**/api/openings?*", (route) => route.fulfill({ json: OPENINGS }));
 	await page.route("**/api/statistics/forks?*", (route) => route.fulfill({ json: FORKS }));
@@ -107,6 +108,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function snapshot(page: Page, name: string) {
+	// A hovered piece is enlarged, so the pointer must not rest on the board.
+	await page.mouse.move(0, 0);
 	await expect(page.locator("main")).toHaveScreenshot(name);
 }
 

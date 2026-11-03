@@ -164,10 +164,16 @@ def store_reasons(conn: sqlite3.Connection, reasons: list[GameReasons]) -> None:
 
 
 def classify_unanalysed(db_path: Path, username: str) -> None:
+    conn = connect(db_path)
+    games = list_unanalysed_games(conn, username)
+    conn.close()
+    classify_games(db_path, games)
+
+
+def classify_games(db_path: Path, games: list[Game]) -> None:
     """A game still missing engine results is left out, so a later run picks it up."""
     conn = connect(db_path)
     analyses = load_position_analyses(conn)
-    games = list_unanalysed_games(conn, username)
     reasons = []
     for game in games:
         steps = build_steps(game.pgn, analyses)
