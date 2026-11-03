@@ -13,11 +13,13 @@ function fenAtPly(moves: string[], ply: number): string {
 
 type Props = {
 	pgn: string;
+	white: string;
+	black: string;
 	colour: "white" | "black";
 	analysis: GameDetail["analysis"] | undefined;
 };
 
-export function GameViewer({ pgn, colour, analysis }: Props) {
+export function GameViewer({ pgn, white, black, colour, analysis }: Props) {
 	const [moves] = useState(() => {
 		const game = new Chess();
 		game.loadPgn(pgn);
@@ -59,6 +61,9 @@ export function GameViewer({ pgn, colour, analysis }: Props) {
 	return (
 		<div className="flex flex-col gap-6 lg:flex-row">
 			<div className="w-full min-w-0 max-w-[600px]">
+				<p data-testid="top-player" className="mb-1 font-bold">
+					{colour === "white" ? black : white}
+				</p>
 				<div className="flex gap-2">
 					<EvalBar evaluation={evaluation} whiteToMove={fen.split(" ")[1] === "w"} whiteAtBottom={colour === "white"} />
 					<div className="min-w-0 flex-1">
@@ -67,6 +72,9 @@ export function GameViewer({ pgn, colour, analysis }: Props) {
 						/>
 					</div>
 				</div>
+				<p data-testid="bottom-player" className="mt-1 font-bold">
+					{colour === "white" ? white : black}
+				</p>
 				<p className="mt-2 min-h-6 text-center font-bold tabular-nums">
 					{evaluationError ?? (evaluation && formatEvaluation(evaluation))}
 				</p>
