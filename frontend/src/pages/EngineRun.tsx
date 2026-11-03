@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { type AnalysisState, getAnalysis, startAnalysis } from "../api/client";
 
-const POLL_MS = 2000;
+const POLL_MS = 1000;
 // Measured on the first full run: about 19 positions a second at 62 new positions a game.
 const SECONDS_PER_GAME = 3.3;
 
@@ -24,7 +24,18 @@ function Progress({ state }: { state: AnalysisState }) {
 				<p>
 					Running the engine: {state.done} of {state.total} positions
 				</p>
-				<progress className="mt-1 w-full" value={state.done} max={Math.max(state.total, 1)} />
+				<div
+					role="progressbar"
+					aria-valuenow={state.done}
+					aria-valuemax={state.total}
+					className="mt-1 h-2 w-full overflow-hidden rounded bg-gray-200 dark:bg-gray-700"
+				>
+					{/* Eases across each poll interval, so the bar glides instead of jumping. */}
+					<div
+						className="h-full rounded bg-blue-600 transition-[width] duration-1000 ease-linear"
+						style={{ width: `${(100 * state.done) / Math.max(state.total, 1)}%` }}
+					/>
+				</div>
 			</>
 		);
 	}
