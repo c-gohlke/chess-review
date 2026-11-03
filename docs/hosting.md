@@ -18,11 +18,21 @@ nothing, and Stockfish will run on the Mac's CPU later.
 After `docker build` (see docs/README.md):
 
 ```
-docker run -d --restart unless-stopped --name chess-review -p 8000:8000 -v chess-review-data:/data chess-review
+docker run -d --restart unless-stopped --name chess-review -p 8000:8000 \
+  -v ~/Downloads/chess-analysis:/data -e CHESS_REVIEW_DB=/data/analysis.sqlite3 chess-review
 ```
 
 `--restart unless-stopped` brings the container back after Docker Desktop restarts. Open
 `http://clements-macbook-air:8000` on the phone.
+
+The container uses the same SQLite file as the analysis scripts on the Mac,
+`~/Downloads/chess-analysis/analysis.sqlite3`, so there is one database with every game and
+analysis. The first start triggers a macOS prompt for Docker to access the Downloads folder;
+allow it, or the container stays in `Created`.
+
+Don't run a second server on the same file while the container runs. SQLite's locking is not
+reliable between the Mac and Docker's Linux VM. To try a branch locally, point
+`CHESS_REVIEW_DB` at a copy made with `sqlite3 <file> ".backup <copy>"`.
 
 Docker Desktop must be running and the Mac must be awake. When plugged in, enable System
 Settings > Battery > "Prevent automatic sleeping when the display is off".
@@ -33,10 +43,11 @@ Settings > Battery > "Prevent automatic sleeping when the display is off".
 git pull
 docker build -t chess-review .
 docker rm -f chess-review
-docker run -d --restart unless-stopped --name chess-review -p 8000:8000 -v chess-review-data:/data chess-review
+docker run -d --restart unless-stopped --name chess-review -p 8000:8000 \
+  -v ~/Downloads/chess-analysis:/data -e CHESS_REVIEW_DB=/data/analysis.sqlite3 chess-review
 ```
 
-The named volume keeps the games across rebuilds.
+The database lives on the Mac, so rebuilds keep every game and analysis.
 
 ## Limits
 
