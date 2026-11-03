@@ -115,3 +115,11 @@ test("a hovered or selected piece is enlarged by 20%", async ({ page }) => {
 	await page.mouse.move(0, 0);
 	await expect(pawn).toHaveCSS("transform", "matrix(1.2, 0, 0, 1.2, 0, 0)");
 });
+
+test("the board opens first, under the last tab, named Analyze", async ({ page }) => {
+	await page.goto("/");
+
+	const tabs = page.getByRole("button").filter({ hasText: /^(Games|Openings|Statistics|Analyze)$/ });
+	await expect(tabs).toHaveText(["Games", "Openings", "Statistics", "Analyze"]);
+	await expect(page.locator("[data-square]")).toHaveCount(64);
+});
