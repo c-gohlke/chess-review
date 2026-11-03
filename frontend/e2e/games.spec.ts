@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test.beforeEach(({ page }) => page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] })));
+test.beforeEach(async ({ page }) => {
+	await page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] }));
+	await page.route("**/api/import/chesscom/*", (route) => route.fulfill({ json: { imported: 0 } }));
+});
 
 const GAMES = [
 	{
@@ -228,4 +231,30 @@ test("importing games from chess.com", async ({ page }) => {
 	await page.getByRole("button", { name: "Import" }).click();
 
 	await expect(page.getByText("Imported 3 games")).toBeVisible();
+});
+
+test("opening the Games tab fetches new games from chess.com", async ({ page }) => {
+	let imported = false;
+	await page.route("**/api/import/chesscom/alice", (route) => {
+		imported = true;
+		return route.fulfill({ json: { imported: 1 } });
+	});
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: imported ? GAMES : GAMES.slice(1) }));
+	await page.goto("/");
+
+	await page.getByRole("button", { name: "Games", exact: true }).click();
+
+	await expect(page.getByText("1 new game")).toBeVisible();
+	await expect(page.getByRole("listitem")).toHaveCount(3);
+});
+
+test("a failed check leaves the stored games on show", async ({ page }) => {
+	await page.route("**/api/import/chesscom/alice", (route) => route.fulfill({ status: 502 }));
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
+	await page.goto("/");
+
+	await page.getByRole("button", { name: "Games", exact: true }).click();
+
+	await expect(page.getByText(/^Could not check chess.com/)).toBeVisible();
+	await expect(page.getByRole("listitem")).toHaveCount(3);
 });
