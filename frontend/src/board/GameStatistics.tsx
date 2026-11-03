@@ -6,6 +6,7 @@ type Moment = Analysis["moments"][number];
 
 type Props = {
 	analysis: GameDetail["analysis"] | undefined;
+	analysing: boolean;
 	moves: string[];
 	ply: number;
 	onSelectPly: (ply: number) => void;
@@ -105,7 +106,7 @@ function MoveRun({ run, moves, ply, onSelectPly }: Pick<Props, "moves" | "ply" |
 	);
 }
 
-export function GameStatistics({ analysis, moves, ply, onSelectPly }: Props) {
+export function GameStatistics({ analysis, analysing, moves, ply, onSelectPly }: Props) {
 	const listRef = useRef<HTMLDivElement>(null);
 
 	// Scrolls the list only, so stepping on a phone does not move the board off screen.
@@ -128,8 +129,10 @@ export function GameStatistics({ analysis, moves, ply, onSelectPly }: Props) {
 				<p className="mb-2">
 					Decided by: <strong>{analysis.decided_by}</strong>
 				</p>
+			) : analysing ? (
+				<p className="mb-2">Analysing this game…</p>
 			) : (
-				<p className="mb-2">This game has not been analysed yet. You can start the engine from the Statistics tab.</p>
+				<p className="mb-2">This game has not been analysed yet.</p>
 			)}
 			{analysis && analysis.moments.length === 0 && <p className="mb-2">No costly errors found.</p>}
 			<div ref={listRef} data-testid="move-list" className="lg:max-h-[560px] lg:overflow-y-auto lg:pr-1">

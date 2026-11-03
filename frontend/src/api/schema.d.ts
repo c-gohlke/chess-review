@@ -72,6 +72,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/games/{game_id}/analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyse Game
+         * @description Runs the engine on one game, taking a few seconds; an analysed game is returned as it is.
+         */
+        post: operations["analyse_game_api_games__game_id__analysis_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/openings": {
         parameters: {
             query?: never;
@@ -444,6 +464,37 @@ export interface operations {
         };
     };
     get_game_detail_api_games__game_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GameDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analyse_game_api_games__game_id__analysis_post: {
         parameters: {
             query?: never;
             header?: never;

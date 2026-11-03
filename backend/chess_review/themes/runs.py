@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Literal
 
 from chess_review.analysis.positions import analyse_games
-from chess_review.db import connect, list_unanalysed_games
-from chess_review.themes.classify import classify_unanalysed
+from chess_review.db import Game, connect, list_unanalysed_games
+from chess_review.themes.classify import classify_games, classify_unanalysed
 
 Phase = Literal["idle", "preparing", "analysing", "classifying", "failed"]
 Report = Callable[[Phase, int, int], None]
@@ -37,6 +37,14 @@ def engine_job(db_path: Path, stockfish_path: Path, workers: int) -> Job:
         classify_unanalysed(db_path, username)
 
     return run
+
+
+def game_engine(db_path: Path, stockfish_path: Path, workers: int) -> Callable[[Game], None]:
+    def analyse(game: Game) -> None:
+        analyse_games(db_path, [game], stockfish_path, workers, lambda _done, _total: None)
+        classify_games(db_path, [game])
+
+    return analyse
 
 
 class AnalysisRuns:

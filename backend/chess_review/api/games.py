@@ -96,14 +96,28 @@ def _analysis(conn: sqlite3.Connection, game: Game, game_id: int) -> GameAnalysi
     return build_game_analysis(game, own, opponent, list_game_moments(conn, game_id))
 
 
-@router.get("/api/games/{game_id}")
-def get_game_detail(game_id: int, conn: Db) -> GameDetail:
+def _game(conn: sqlite3.Connection, game_id: int) -> Game:
     game = get_game(conn, game_id)
     if game is None:
         raise HTTPException(status_code=404, detail="game not found")
+    return game
+
+
+@router.get("/api/games/{game_id}")
+def get_game_detail(game_id: int, conn: Db) -> GameDetail:
+    game = _game(conn, game_id)
     return GameDetail(
         **GameSummary.model_validate(game, from_attributes=True).model_dump(),
         pgn=game.pgn,
         colour=colour_played(game),
         analysis=_analysis(conn, game, game_id),
     )
+
+
+@router.post("/api/games/{game_id}/analysis")
+def analyse_game(game_id: int, conn: Db, request: Request) -> GameDetail:
+    """Runs the engine on one game, taking a few seconds; an analysed game is returned as it is."""
+    game = _game(conn, game_id)
+    if _analysis(conn, game, game_id) is None:
+        request.app.state.analyse_game(game)
+    return get_game_detail(game_id, conn)

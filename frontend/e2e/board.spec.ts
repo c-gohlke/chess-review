@@ -102,13 +102,14 @@ test("dragging a piece highlights its legal moves until it is dropped", async ({
 	await expect(page.locator('[data-square="e3"] div').first()).not.toHaveCSS("background-image", /radial-gradient/);
 });
 
-test("a hovered or selected piece is enlarged by 20%", async ({ page }) => {
+test("a hovered or selected piece is enlarged by 20%", async ({ page, isMobile }) => {
 	await page.goto("/");
 	const pawn = page.locator('[data-square="e2"] [data-piece]');
 	const knight = page.locator('[data-square="g1"] [data-piece]');
 
 	await pawn.hover();
-	await expect(pawn).toHaveCSS("transform", "matrix(1.2, 0, 0, 1.2, 0, 0)");
+	// Touch screens have no real hover, so only a selected piece grows there.
+	await expect(pawn).toHaveCSS("transform", isMobile ? "none" : "matrix(1.2, 0, 0, 1.2, 0, 0)");
 	await expect(knight).toHaveCSS("transform", "none");
 
 	await pawn.click();

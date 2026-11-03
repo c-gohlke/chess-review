@@ -169,6 +169,46 @@
         }
       }
     },
+    "/api/games/{game_id}/analysis": {
+      "post": {
+        "summary": "Analyse Game",
+        "description": "Runs the engine on one game, taking a few seconds; an analysed game is returned as it is.",
+        "operationId": "analyse_game_api_games__game_id__analysis_post",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Game Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/openings": {
       "get": {
         "summary": "Get Openings",

@@ -3,6 +3,8 @@ import { expect, type Locator, type Page, test } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
 	await page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] }));
 	await page.route("**/api/import/chesscom/*", (route) => route.fulfill({ json: { imported: 0 } }));
+	// Tests that care about the engine answer this themselves.
+	await page.route("**/api/games/*/analysis", (route) => route.fulfill({ status: 503 }));
 });
 
 const GAME = {
@@ -152,4 +154,44 @@ test("a failed evaluation is shown and the replay keeps working", async ({ page 
 
 	await expect(page.getByText("request failed with status 500")).toBeVisible();
 	await expect(page.getByText("1 / 4")).toBeVisible();
+});
+
+test("opening an unanalysed game analyses it", async ({ page }) => {
+	let finish = () => {};
+	const finished = new Promise<void>((resolve) => {
+		finish = resolve;
+	});
+	await page.route("**/api/games/1/analysis", async (route) => {
+		await finished;
+		return route.fulfill({ json: { ...GAME, analysis: ANALYSIS } });
+	});
+
+	await openGame(page);
+
+	await expect(page.getByText("Analysing this game…")).toBeVisible();
+	finish();
+	await expect(page.getByText("Decided by:")).toContainText("Allowed a mate");
+	await expect(page.getByRole("button", { name: "g4??" })).toBeVisible();
+});
+
+test("a failed analysis is shown, and the replay keeps working", async ({ page }) => {
+	await openGame(page);
+
+	await expect(page.getByText("request failed with status 503")).toBeVisible();
+	await expect(page.getByText("This game has not been analysed yet.")).toBeVisible();
+	await page.getByRole("button", { name: "g4" }).click();
+	await expect(page.getByText("3 / 4")).toBeVisible();
+});
+
+test("an analysed game is not sent to the engine", async ({ page }) => {
+	let requested = false;
+	await page.route("**/api/games/1/analysis", (route) => {
+		requested = true;
+		return route.fulfill({ status: 503 });
+	});
+
+	await openGame(page, { ...GAME, analysis: ANALYSIS } as typeof GAME);
+
+	await expect(page.getByText("Decided by:")).toBeVisible();
+	expect(requested).toBe(false);
 });

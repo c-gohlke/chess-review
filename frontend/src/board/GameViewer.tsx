@@ -17,9 +17,10 @@ type Props = {
 	black: string;
 	colour: "white" | "black";
 	analysis: GameDetail["analysis"] | undefined;
+	analysing: boolean;
 };
 
-export function GameViewer({ pgn, white, black, colour, analysis }: Props) {
+export function GameViewer({ pgn, white, black, colour, analysis, analysing }: Props) {
 	const [moves] = useState(() => {
 		const game = new Chess();
 		game.loadPgn(pgn);
@@ -100,7 +101,7 @@ export function GameViewer({ pgn, white, black, colour, analysis }: Props) {
 					</button>
 				</div>
 			</div>
-			<GameStatistics analysis={analysis} moves={moves} ply={ply} onSelectPly={setPly} />
+			<GameStatistics analysis={analysis} analysing={analysing} moves={moves} ply={ply} onSelectPly={setPly} />
 		</div>
 	);
 }

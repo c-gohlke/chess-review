@@ -22,6 +22,9 @@ body {
 	transform: scale(var(--piece-scale));
 }
 
-[data-piece]:hover {
-	--piece-scale: 1.2;
+/* Touch screens keep :hover on the last tapped spot, which would leave a piece enlarged there. */
+@media (hover: hover) {
+	[data-piece]:hover {
+		--piece-scale: 1.2;
+	}
 }

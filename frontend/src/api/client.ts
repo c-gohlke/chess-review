@@ -31,6 +31,11 @@ export async function getGame(id: number): Promise<GameDetail> {
 	return response.json();
 }
 
+export async function analyseGame(id: number): Promise<GameDetail> {
+	const response = await checkOk(await fetch(`/api/games/${id}/analysis`, { method: "POST" }));
+	return response.json();
+}
+
 export async function getForkStatistics(username: string): Promise<ForkSummary> {
 	const response = await checkOk(await fetch(`/api/statistics/forks?${new URLSearchParams({ username })}`));
 	return response.json();

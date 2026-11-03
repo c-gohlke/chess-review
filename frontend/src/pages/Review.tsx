@@ -1,15 +1,28 @@
 import { useEffect, useState } from "react";
-import { type GameDetail, getGame } from "../api/client";
+import { analyseGame, type GameDetail, getGame } from "../api/client";
 import { GameViewer } from "../board/GameViewer";
 
 export function Review({ gameId, onBack }: { gameId: number; onBack: () => void }) {
 	const [game, setGame] = useState<GameDetail | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [analysing, setAnalysing] = useState(false);
 
 	useEffect(() => {
+		let current = true;
 		getGame(gameId)
-			.then(setGame)
-			.catch((err: Error) => setError(err.message));
+			.then((loaded) => {
+				if (!current) return;
+				setGame(loaded);
+				if (loaded.analysis) return;
+				// Opening a game is the request to analyse it; the engine takes a few seconds.
+				setAnalysing(true);
+				return analyseGame(gameId).then((analysed) => current && setGame(analysed));
+			})
+			.catch((err: Error) => current && setError(err.message))
+			.finally(() => current && setAnalysing(false));
+		return () => {
+			current = false;
+		};
 	}, [gameId]);
 
 	return (
@@ -25,6 +38,7 @@ export function Review({ gameId, onBack }: { gameId: number; onBack: () => void 
 					black={game.black}
 					colour={game.colour}
 					analysis={game.analysis}
+					analysing={analysing}
 				/>
 			)}
 		</div>
