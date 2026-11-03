@@ -119,7 +119,7 @@ test("a hovered or selected piece is enlarged by 20%", async ({ page }) => {
 test("the board opens first, under the last tab, named Analyze", async ({ page }) => {
 	await page.goto("/");
 
-	const tabs = page.getByRole("button").filter({ hasText: /^(Games|Openings|Statistics|Analyze)$/ });
-	await expect(tabs).toHaveText(["Games", "Openings", "Statistics", "Analyze"]);
+	const tabs = page.getByRole("button").filter({ hasText: /^(Games|Openings|Statistics|Settings|Analyze)$/ });
+	await expect(tabs).toHaveText(["Games", "Openings", "Statistics", "Settings", "Analyze"]);
 	await expect(page.locator("[data-square]")).toHaveCount(64);
 });

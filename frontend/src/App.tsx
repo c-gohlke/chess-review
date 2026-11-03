@@ -4,9 +4,10 @@ import { Board } from "./board/Board";
 import { Games } from "./pages/Games";
 import { Openings } from "./pages/Openings";
 import { Review } from "./pages/Review";
+import { Settings } from "./pages/Settings";
 import { Statistics } from "./pages/Statistics";
 
-type Tab = "analyze" | "games" | "openings" | "statistics";
+type Tab = "analyze" | "games" | "openings" | "statistics" | "settings";
 
 const PLAYER_KEY = "chess-review-player";
 
@@ -56,17 +57,18 @@ function App() {
 
 	return (
 		<main className="p-4">
-			<div className="mx-auto mb-4 flex w-full max-w-[600px] flex-wrap gap-2">
+			{/* Five equal columns on a phone, so every tab fits on one row. */}
+			<div className="mx-auto mb-4 grid w-full max-w-[600px] grid-cols-5 gap-1 sm:flex sm:gap-2">
 				<button
 					type="button"
-					className={`rounded px-3 py-2 sm:px-4 ${tab === "games" ? "bg-blue-600 text-white" : "border"}`}
+					className={`rounded px-1 py-2 text-sm sm:px-4 sm:text-base ${tab === "games" ? "bg-blue-600 text-white" : "border"}`}
 					onClick={openGames}
 				>
 					Games
 				</button>
 				<button
 					type="button"
-					className={`rounded px-3 py-2 sm:px-4 ${tab === "openings" ? "bg-blue-600 text-white" : "border"}`}
+					className={`rounded px-1 py-2 text-sm sm:px-4 sm:text-base ${tab === "openings" ? "bg-blue-600 text-white" : "border"}`}
 					onClick={() => {
 						setTab("openings");
 						setGameId(null);
@@ -76,7 +78,7 @@ function App() {
 				</button>
 				<button
 					type="button"
-					className={`rounded px-3 py-2 sm:px-4 ${tab === "statistics" ? "bg-blue-600 text-white" : "border"}`}
+					className={`rounded px-1 py-2 text-sm sm:px-4 sm:text-base ${tab === "statistics" ? "bg-blue-600 text-white" : "border"}`}
 					onClick={() => {
 						setTab("statistics");
 						setGameId(null);
@@ -86,28 +88,19 @@ function App() {
 				</button>
 				<button
 					type="button"
-					className={`rounded px-3 py-2 sm:px-4 ${tab === "analyze" ? "bg-blue-600 text-white" : "border"}`}
+					className={`rounded px-1 py-2 text-sm sm:px-4 sm:text-base ${tab === "settings" ? "bg-blue-600 text-white" : "border"}`}
+					onClick={() => setTab("settings")}
+				>
+					Settings
+				</button>
+				<button
+					type="button"
+					className={`rounded px-1 py-2 text-sm sm:px-4 sm:text-base ${tab === "analyze" ? "bg-blue-600 text-white" : "border"}`}
 					onClick={() => setTab("analyze")}
 				>
 					Analyze
 				</button>
 			</div>
-			{tab !== "analyze" && users && users.length > 1 && (
-				<div className="mx-auto mb-4 w-full max-w-[600px]">
-					<select
-						aria-label="Player"
-						className="min-h-11 w-full rounded border px-3"
-						value={player ?? ""}
-						onChange={(event) => choosePlayer(event.target.value)}
-					>
-						{users.map((user) => (
-							<option key={user} value={user}>
-								{user}
-							</option>
-						))}
-					</select>
-				</div>
-			)}
 			{tab !== "analyze" && usersError && (
 				<p className="mx-auto w-full max-w-[600px] text-red-600 dark:text-red-400">{usersError}</p>
 			)}
@@ -115,6 +108,7 @@ function App() {
 				<p className="mx-auto mb-4 w-full max-w-[600px] text-sm">{syncMessage}</p>
 			)}
 			{tab === "analyze" && <Board />}
+			{tab === "settings" && users && <Settings users={users} player={player} onChoose={choosePlayer} />}
 			{tab === "games" &&
 				users &&
 				(gameId === null ? (

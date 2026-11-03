@@ -195,7 +195,10 @@ test("games and openings show one player at a time, and the choice is remembered
 	await expect(page.getByText("alice vs bob")).toBeVisible();
 	await expect(page.getByText("carol vs dave")).toHaveCount(0);
 
+	await expect(page.getByLabel("Player")).toHaveCount(0);
+	await page.getByRole("button", { name: "Settings" }).click();
 	await page.getByLabel("Player").selectOption("carol");
+	await page.getByRole("button", { name: "Games" }).click();
 	await expect(page.getByText("carol vs dave")).toBeVisible();
 	await expect(page.getByText("alice vs bob")).toHaveCount(0);
 
@@ -208,14 +211,13 @@ test("games and openings show one player at a time, and the choice is remembered
 	await expect(page.getByText("carol vs dave")).toBeVisible();
 });
 
-test("a single player gets no selector", async ({ page }) => {
-	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
+test("settings point to the Games tab when there are no players", async ({ page }) => {
+	await page.route("**/api/users", (route) => route.fulfill({ json: [] }));
 
 	await page.goto("/");
-	await page.getByRole("button", { name: "Games" }).click();
+	await page.getByRole("button", { name: "Settings" }).click();
 
-	await expect(page.getByText("alice vs bob")).toBeVisible();
-	await expect(page.getByLabel("Player")).toHaveCount(0);
+	await expect(page.getByText("No players yet. Import games from the Games tab.")).toBeVisible();
 });
 
 test("importing a new player switches to them", async ({ page }) => {
@@ -236,6 +238,7 @@ test("importing a new player switches to them", async ({ page }) => {
 	await page.getByRole("button", { name: "Import" }).click();
 
 	await expect(page.getByText("carol vs dave")).toBeVisible();
+	await page.getByRole("button", { name: "Settings" }).click();
 	await expect(page.getByLabel("Player")).toHaveValue("carol");
 });
 
