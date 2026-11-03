@@ -132,16 +132,6 @@ export function GameStatistics({ analysis, moves, ply, onSelectPly }: Props) {
 				<p className="mb-2">This game has not been analysed yet. You can start the engine from the Statistics tab.</p>
 			)}
 			{analysis && analysis.moments.length === 0 && <p className="mb-2">No costly errors found.</p>}
-			{analysis && analysis.moments.length > 0 && (
-				<ul className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-					<li>
-						<span className={`rounded px-1 font-mono ${COSTLY}`}>?</span> Costly move, gave away a lot of win chance
-					</li>
-					<li className="mt-1">
-						<span className={`rounded px-1 font-mono ${DECIDING}`}>??</span> Deciding move, lost the game
-					</li>
-				</ul>
-			)}
 			<div ref={listRef} data-testid="move-list" className="lg:max-h-[560px] lg:overflow-y-auto lg:pr-1">
 				{blocks.map((block) =>
 					"key" in block ? (
