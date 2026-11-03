@@ -44,6 +44,7 @@ test("a requested run shows its progress until it finishes", async ({ page }) =>
 	await page.getByRole("button", { name: /^Analyse/ }).click();
 
 	await expect(page.getByText("Running the engine: 40 of 120 positions")).toBeVisible();
+	await expect(page.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "40");
 	await expect(page.getByRole("button", { name: /^Analyse/ })).toHaveCount(0);
 	await expect(page.getByText("10 of 10 games analysed.")).toBeVisible({ timeout: 10000 });
 });
