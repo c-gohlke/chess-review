@@ -279,3 +279,27 @@ test("a failed check leaves the stored games on show", async ({ page }) => {
 	await expect(page.getByText(/^Could not check chess.com/)).toBeVisible();
 	await expect(page.getByRole("listitem")).toHaveCount(3);
 });
+
+test("a failed games request is shown", async ({ page }) => {
+	await page.route("**/api/games?*", (route) => route.fulfill({ status: 500 }));
+	await page.goto("/");
+
+	await page.getByRole("button", { name: "Games" }).click();
+
+	await expect(page.getByText("request failed with status 500")).toBeVisible();
+	await expect(page.getByText("No games yet")).toHaveCount(0);
+});
+
+test("a game that fails to load says so, and Back returns to the list", async ({ page }) => {
+	await page.route("**/api/games?*", (route) => route.fulfill({ json: GAMES }));
+	await page.route("**/api/games/1", (route) => route.fulfill({ status: 404 }));
+	await page.goto("/");
+	await page.getByRole("button", { name: "Games" }).click();
+
+	await page.getByText("alice vs bob").click();
+	await expect(page.getByText("request failed with status 404")).toBeVisible();
+	await expect(page.locator("[data-square]")).toHaveCount(0);
+
+	await page.getByRole("button", { name: "Back" }).click();
+	await expect(page.getByText("alice vs bob")).toBeVisible();
+});

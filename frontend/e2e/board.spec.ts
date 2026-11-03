@@ -123,3 +123,26 @@ test("the board opens first, under the last tab, named Analyze", async ({ page }
 	await expect(tabs).toHaveText(["Games", "Openings", "Statistics", "Settings", "Analyze"]);
 	await expect(page.locator("[data-square]")).toHaveCount(64);
 });
+
+test("a pawn reaching the last rank becomes a queen", async ({ page }) => {
+	// Nine moves take longer than most tests.
+	test.slow();
+	await page.goto("/");
+
+	for (const [from, to] of [
+		["a2", "a4"],
+		["b7", "b5"],
+		["a4", "b5"],
+		["a7", "a6"],
+		["b5", "a6"],
+		["c8", "b7"],
+		["a6", "b7"],
+		["h7", "h6"],
+		["b7", "a8"],
+	]) {
+		await page.locator(`[data-square="${from}"]`).click();
+		await page.locator(`[data-square="${to}"]`).click();
+	}
+
+	await expect(page.locator('[data-square="a8"] [data-piece="wQ"]')).toHaveCount(1);
+});

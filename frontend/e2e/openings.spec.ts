@@ -136,3 +136,12 @@ test("a failed games request shows an error under the variation", async ({ page 
 
 	await expect(page.getByText("request failed with status 500")).toBeVisible();
 });
+
+test("a failed openings request is shown", async ({ page }) => {
+	await page.route("**/api/openings?*", (route) => route.fulfill({ status: 500 }));
+	await page.goto("/");
+
+	await page.getByRole("button", { name: "Openings" }).click();
+
+	await expect(page.getByText("request failed with status 500")).toBeVisible();
+});
