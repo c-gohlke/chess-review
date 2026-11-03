@@ -6,10 +6,13 @@ const PAGE_SIZE = 50;
 
 export function Games({
 	player,
+	version,
 	onSelect,
 	onImported,
 }: {
 	player: string | null;
+	// Bumped when new games arrive, so the list reloads without losing what is typed on the page.
+	version: number;
 	onSelect: (id: number) => void;
 	onImported: (username: string) => void;
 }) {
@@ -34,7 +37,8 @@ export function Games({
 			.catch((error: Error) => setLoadError(error.message));
 	}, [player]);
 
-	useEffect(reload, [reload]);
+	// biome-ignore lint/correctness/useExhaustiveDependencies: a new version means new games to show.
+	useEffect(reload, [reload, version]);
 
 	function loadMore(currentPlayer: string, loaded: GameListItem[]) {
 		setLoadingMore(true);

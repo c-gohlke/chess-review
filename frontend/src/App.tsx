@@ -6,12 +6,12 @@ import { Openings } from "./pages/Openings";
 import { Review } from "./pages/Review";
 import { Statistics } from "./pages/Statistics";
 
-type Tab = "play" | "games" | "openings" | "statistics";
+type Tab = "analyze" | "games" | "openings" | "statistics";
 
 const PLAYER_KEY = "chess-review-player";
 
 function App() {
-	const [tab, setTab] = useState<Tab>("play");
+	const [tab, setTab] = useState<Tab>("analyze");
 	const [gameId, setGameId] = useState<number | null>(null);
 	const [users, setUsers] = useState<string[] | null>(null);
 	const [usersError, setUsersError] = useState<string | null>(null);
@@ -30,7 +30,6 @@ function App() {
 		importChesscom(player)
 			.then(({ imported }) => {
 				setSyncMessage(imported > 0 ? `${imported} new ${imported === 1 ? "game" : "games"}` : null);
-				// A new key remounts the list, so it reloads with the new games on top.
 				if (imported > 0) setGamesVersion((version) => version + 1);
 			})
 			.catch((error: Error) => setSyncMessage(`Could not check chess.com: ${error.message}`));
@@ -60,21 +59,14 @@ function App() {
 			<div className="mx-auto mb-4 flex w-full max-w-[600px] flex-wrap gap-2">
 				<button
 					type="button"
-					className={`rounded px-4 py-2 ${tab === "play" ? "bg-blue-600 text-white" : "border"}`}
-					onClick={() => setTab("play")}
-				>
-					Play
-				</button>
-				<button
-					type="button"
-					className={`rounded px-4 py-2 ${tab === "games" ? "bg-blue-600 text-white" : "border"}`}
+					className={`rounded px-3 py-2 sm:px-4 ${tab === "games" ? "bg-blue-600 text-white" : "border"}`}
 					onClick={openGames}
 				>
 					Games
 				</button>
 				<button
 					type="button"
-					className={`rounded px-4 py-2 ${tab === "openings" ? "bg-blue-600 text-white" : "border"}`}
+					className={`rounded px-3 py-2 sm:px-4 ${tab === "openings" ? "bg-blue-600 text-white" : "border"}`}
 					onClick={() => {
 						setTab("openings");
 						setGameId(null);
@@ -84,7 +76,7 @@ function App() {
 				</button>
 				<button
 					type="button"
-					className={`rounded px-4 py-2 ${tab === "statistics" ? "bg-blue-600 text-white" : "border"}`}
+					className={`rounded px-3 py-2 sm:px-4 ${tab === "statistics" ? "bg-blue-600 text-white" : "border"}`}
 					onClick={() => {
 						setTab("statistics");
 						setGameId(null);
@@ -92,8 +84,15 @@ function App() {
 				>
 					Statistics
 				</button>
+				<button
+					type="button"
+					className={`rounded px-3 py-2 sm:px-4 ${tab === "analyze" ? "bg-blue-600 text-white" : "border"}`}
+					onClick={() => setTab("analyze")}
+				>
+					Analyze
+				</button>
 			</div>
-			{tab !== "play" && users && users.length > 1 && (
+			{tab !== "analyze" && users && users.length > 1 && (
 				<div className="mx-auto mb-4 w-full max-w-[600px]">
 					<select
 						aria-label="Player"
@@ -109,17 +108,17 @@ function App() {
 					</select>
 				</div>
 			)}
-			{tab !== "play" && usersError && (
+			{tab !== "analyze" && usersError && (
 				<p className="mx-auto w-full max-w-[600px] text-red-600 dark:text-red-400">{usersError}</p>
 			)}
 			{tab === "games" && gameId === null && syncMessage && (
 				<p className="mx-auto mb-4 w-full max-w-[600px] text-sm">{syncMessage}</p>
 			)}
-			{tab === "play" && <Board />}
+			{tab === "analyze" && <Board />}
 			{tab === "games" &&
 				users &&
 				(gameId === null ? (
-					<Games key={`${player}-${gamesVersion}`} player={player} onSelect={setGameId} onImported={handleImported} />
+					<Games key={player} player={player} version={gamesVersion} onSelect={setGameId} onImported={handleImported} />
 				) : (
 					<Review gameId={gameId} onBack={() => setGameId(null)} />
 				))}
