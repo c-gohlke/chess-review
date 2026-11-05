@@ -158,3 +158,23 @@ test("settings view", async ({ page }) => {
 
 	await snapshot(page, "settings.png");
 });
+
+test.describe("on a large screen", () => {
+	test.use({ viewport: { width: 2560, height: 1440 } });
+
+	test("the analyze board fills the window's height", async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name !== "desktop", "phones have no large screen");
+		await expect(page.locator("[data-square]")).toHaveCount(64);
+
+		await snapshot(page, "analyze-large.png");
+	});
+
+	test("the game board fills the window's height", async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name !== "desktop", "phones have no large screen");
+		await page.getByRole("button", { name: "Games" }).click();
+		await page.getByText("alice vs bob").click();
+		await expect(page.getByText("Decided by:")).toBeVisible();
+
+		await snapshot(page, "game-large.png");
+	});
+});

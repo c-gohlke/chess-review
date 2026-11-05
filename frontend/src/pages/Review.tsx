@@ -26,7 +26,7 @@ export function Review({ gameId, onBack }: { gameId: number; onBack: () => void 
 	}, [gameId]);
 
 	return (
-		<div className="mx-auto w-full max-w-[600px] lg:max-w-[944px]">
+		<div className="mx-auto w-full max-w-[max(600px,calc(100dvh-19rem))] lg:max-w-[calc(max(600px,calc(100dvh-19rem))+344px)]">
 			<button type="button" className="mb-4 rounded border px-4 py-2" onClick={onBack}>
 				Back
 			</button>
