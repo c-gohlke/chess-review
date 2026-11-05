@@ -3,6 +3,8 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.responses import Response
+from starlette.types import Scope
 
 from chess_review.api.analysis import router as analysis_router
 from chess_review.api.evaluation import router as evaluation_router
@@ -10,6 +12,16 @@ from chess_review.api.games import router as games_router
 from chess_review.api.openings import router as openings_router
 from chess_review.api.statistics import router as statistics_router
 from chess_review.themes.runs import AnalysisRuns, engine_job, game_engine
+
+
+class AppFiles(StaticFiles):
+    """Serves the built frontend; the page is revalidated on every load, so a deploy shows at once."""
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        response = await super().get_response(path, scope)
+        if not path.startswith("assets/"):
+            response.headers["Cache-Control"] = "no-cache"
+        return response
 
 
 def create_app(static_dir: Path, db_path: Path, stockfish_path: Path) -> FastAPI:
@@ -30,7 +42,7 @@ def create_app(static_dir: Path, db_path: Path, stockfish_path: Path) -> FastAPI
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    app.mount("/", StaticFiles(directory=static_dir, html=True))
+    app.mount("/", AppFiles(directory=static_dir, html=True))
     return app
 
 
