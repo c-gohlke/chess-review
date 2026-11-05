@@ -61,7 +61,8 @@ export function GameViewer({ pgn, white, black, colour, analysis, analysing }: P
 
 	return (
 		<div className="flex flex-col gap-6 lg:flex-row">
-			<div className="w-full min-w-0 max-w-[600px]">
+			{/* Fills the window's height on a large screen, minus the names, controls and tabs. */}
+			<div className="w-full min-w-0 max-w-[max(600px,calc(100dvh-19rem))]">
 				<p data-testid="top-player" className="mb-1 font-bold">
 					{colour === "white" ? black : white}
 				</p>

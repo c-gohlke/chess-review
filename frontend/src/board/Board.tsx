@@ -55,7 +55,8 @@ export function Board() {
 		: {};
 
 	return (
-		<div className="mx-auto w-full max-w-[600px]">
+		// Fills the window's height on a large screen, minus the tabs and heading; never below 600px.
+		<div className="mx-auto w-full max-w-[max(600px,calc(100dvh-10rem))]">
 			{game.isCheckmate() ? (
 				<div className="mb-2 rounded bg-red-600 py-2 text-center font-bold text-white">Checkmate</div>
 			) : (
