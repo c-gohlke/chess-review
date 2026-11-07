@@ -55,3 +55,18 @@ dev server on top of that; it proxies `/api`.
 `CHESS_REVIEW_STOCKFISH` is the path to the Stockfish binary.
 
 The API is documented by the running server at `/docs`.
+
+## Puzzles
+
+```
+uv run --directory backend python -m chess_review.puzzles.build <db> <username> <out_dir>
+```
+
+This turns the costly moves of a player's analysed games into puzzles and writes one `<theme>.csv`
+per theme, costliest mistakes first. Themes are hierarchical, so `fork.csv` holds every fork and
+`fork_knight.csv` only the knight ones. The columns follow the Lichess puzzle format: `FEN` is the
+position before the opponent's move, and `Moves` is that move then the solution in UCI.
+`SolvedBy` says whether the solver is the player or the opponent, `WinLost` is how many points of
+win chance the mistake cost, and `GameUrl` links the game.
+
+Run it on a copy of the database (`sqlite3 <db> ".backup <copy>"`) while the server is running.
