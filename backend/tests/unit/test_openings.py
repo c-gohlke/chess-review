@@ -153,14 +153,19 @@ def test_parse_opening_without_a_named_opening_is_unknown(game_pgn: str) -> None
     assert parse_opening(game_pgn) == (UNKNOWN_OPENING, NO_VARIATION)
 
 
-def test_summary_splits_by_colour_and_sorts_worst_first(game_1: Game, game_2: Game) -> None:
-    white_win = replace(game_1, pgn=pgn("Italian-Game"))
-    white_loss = replace(game_1, pgn=pgn("Scotch-Game"), result=Result.LOSS)
+def test_summary_splits_by_colour_and_sorts_most_played_then_worst_first(game_1: Game, game_2: Game) -> None:
+    italian_win = replace(game_1, pgn=pgn("Italian-Game"))
+    ruy_lopez_win = replace(game_1, pgn=pgn("Ruy-Lopez-Opening"))
+    scotch_loss = replace(game_1, pgn=pgn("Scotch-Game"), result=Result.LOSS)
     black_loss = replace(game_2, pgn=pgn("French-Defense"))
 
-    summary = summarize_openings([white_win, white_loss, black_loss], {})
+    summary = summarize_openings([italian_win, italian_win, ruy_lopez_win, scotch_loss, black_loss], {})
 
-    assert [(f.name, f.net) for f in summary.white] == [("Scotch Game", -0.5), ("Italian Game", 0.5)]
+    assert [(f.name, f.games, f.net) for f in summary.white] == [
+        ("Italian Game", 2, 1.0),
+        ("Scotch Game", 1, -0.5),
+        ("Ruy Lopez Opening", 1, 0.5),
+    ]
     assert [(f.name, f.net) for f in summary.black] == [("French Defense", -0.5)]
 
 
