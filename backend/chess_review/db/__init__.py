@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
@@ -319,6 +320,15 @@ def list_loss_reasons(conn: sqlite3.Connection, username: str) -> list[GameReaso
 
 def load_position_analyses(conn: sqlite3.Connection) -> dict[str, PositionAnalysis]:
     rows = conn.execute("SELECT position, cp, mate, pv FROM position_analyses")
+    return {row["position"]: PositionAnalysis(row["position"], row["cp"], row["mate"], row["pv"]) for row in rows}
+
+
+def get_position_analyses(conn: sqlite3.Connection, positions: list[str]) -> dict[str, PositionAnalysis]:
+    # json_each passes the whole list as one parameter, so it isn't capped by SQLite's variable limit.
+    rows = conn.execute(
+        "SELECT position, cp, mate, pv FROM position_analyses WHERE position IN (SELECT value FROM json_each(?))",
+        (json.dumps(positions),),
+    )
     return {row["position"]: PositionAnalysis(row["position"], row["cp"], row["mate"], row["pv"]) for row in rows}
 
 

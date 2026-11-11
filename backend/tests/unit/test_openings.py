@@ -1,18 +1,125 @@
 from dataclasses import replace
 from pathlib import Path
 
+import chess
 import pytest
 from fastapi.testclient import TestClient
 
 from chess_review.api.app import create_app
-from chess_review.db import Game, Result, connect, insert_games
-from chess_review.patterns.openings import NO_VARIATION, UNKNOWN_OPENING, parse_opening, summarize_openings
+from chess_review.db import Game, PositionAnalysis, Result, connect, insert_games, insert_position_analyses
+from chess_review.patterns.openings import (
+    NO_VARIATION,
+    UNKNOWN_OPENING,
+    eval_after_move_10,
+    parse_opening,
+    position_after_move_10,
+    summarize_openings,
+)
 
 BASE = "https://www.chess.com/openings/"
+# Eleven moves with clock comments, as Chess.com exports them.
+ITALIAN_MOVES = (
+    "1. e4 {[%clk 0:03:00]} 1... e5 {[%clk 0:03:00]} 2. Nf3 2... Nc6 3. Bc4 3... Bc5 4. c3 4... Nf6 5. d3 5... d6 "
+    "6. O-O 6... O-O 7. Re1 7... a6 8. a4 8... h6 9. h3 9... Re8 10. Nbd2 10... Be6 11. Bxe6 {[%clk 0:02:10]} 1-0"
+)
+ITALIAN_SAN = [
+    "e4",
+    "e5",
+    "Nf3",
+    "Nc6",
+    "Bc4",
+    "Bc5",
+    "c3",
+    "Nf6",
+    "d3",
+    "d6",
+    "O-O",
+    "O-O",
+    "Re1",
+    "a6",
+    "a4",
+    "h6",
+    "h3",
+    "Re8",
+    "Nbd2",
+    "Be6",
+]
 
 
-def pgn(slug: str) -> str:
-    return f'[Event "Live Chess"]\n[ECOUrl "{BASE}{slug}"]\n\n1. e4 e5'
+def pgn(slug: str, moves: str = "1. e4 e5") -> str:
+    return f'[Event "Live Chess"]\n[ECOUrl "{BASE}{slug}"]\n\n{moves}'
+
+
+def italian_move_10() -> str:
+    board = chess.Board()
+    for san in ITALIAN_SAN:
+        board.push_san(san)
+    return board.epd()
+
+
+def analysis(cp: int | None = None, mate: int | None = None) -> PositionAnalysis:
+    return PositionAnalysis(italian_move_10(), cp, mate, "")
+
+
+def test_position_after_move_10_skips_comments_and_stops_after_blacks_tenth_move() -> None:
+    assert position_after_move_10(pgn("Italian-Game", ITALIAN_MOVES)) == italian_move_10()
+
+
+def test_position_after_move_10_is_none_for_a_shorter_game() -> None:
+    assert position_after_move_10(pgn("Italian-Game", "1. e4 e5 2. Qh5 Nc6 3. Bc4 Nf6 4. Qxf7# 1-0")) is None
+
+
+@pytest.mark.parametrize(
+    ("stored", "as_white", "as_black"),
+    [
+        (analysis(cp=35), 0.35, -0.35),
+        (analysis(cp=-2500), -10.0, 10.0),
+        (analysis(mate=3), 10.0, -10.0),
+        (analysis(mate=-1), -10.0, 10.0),
+        (analysis(mate=0), -10.0, 10.0),
+    ],
+)
+def test_eval_after_move_10_is_capped_and_from_the_players_side(
+    game_1: Game, game_2: Game, stored: PositionAnalysis, as_white: float, as_black: float
+) -> None:
+    analyses = {stored.position: stored}
+    italian = pgn("Italian-Game", ITALIAN_MOVES)
+
+    assert eval_after_move_10(replace(game_1, pgn=italian), analyses) == as_white
+    assert eval_after_move_10(replace(game_2, pgn=italian), analyses) == as_black
+
+
+def test_eval_after_move_10_is_none_before_the_engine_has_seen_the_position(game_1: Game) -> None:
+    assert eval_after_move_10(replace(game_1, pgn=pgn("Italian-Game", ITALIAN_MOVES)), {}) is None
+
+
+def test_summary_averages_move_10_evals_and_skips_games_without_one(game_1: Game) -> None:
+    other_line = ITALIAN_MOVES.replace("8... h6", "8... h5").replace("9. h3", "9. h4")
+    board = chess.Board()
+    for san in ITALIAN_SAN:
+        board.push_san({"h6": "h5", "h3": "h4"}.get(san, san))
+    variation = "Italian-Game-Giuoco-Pianissimo"
+    analyses = {
+        italian_move_10(): analysis(cp=100),
+        board.epd(): PositionAnalysis(board.epd(), -50, None, ""),
+    }
+    games = [
+        replace(game_1, pgn=pgn(variation, ITALIAN_MOVES)),
+        replace(game_1, pgn=pgn(variation, ITALIAN_MOVES)),
+        replace(game_1, pgn=pgn(variation, other_line)),
+        replace(game_1, pgn=pgn(variation)),
+    ]
+
+    [family] = summarize_openings(games, analyses).white
+
+    assert (family.games, family.eval_mean, family.eval_median) == (4, 0.5, 1.0)
+    assert (family.variations[0].eval_mean, family.variations[0].eval_median) == (0.5, 1.0)
+
+
+def test_summary_has_no_eval_when_no_game_reaches_an_analysed_move_10(game_1: Game) -> None:
+    [family] = summarize_openings([replace(game_1, pgn=pgn("French-Defense"))], {}).white
+
+    assert (family.eval_mean, family.eval_median) == (None, None)
 
 
 @pytest.mark.parametrize(
@@ -51,7 +158,7 @@ def test_summary_splits_by_colour_and_sorts_worst_first(game_1: Game, game_2: Ga
     white_loss = replace(game_1, pgn=pgn("Scotch-Game"), result=Result.LOSS)
     black_loss = replace(game_2, pgn=pgn("French-Defense"))
 
-    summary = summarize_openings([white_win, white_loss, black_loss])
+    summary = summarize_openings([white_win, white_loss, black_loss], {})
 
     assert [(f.name, f.net) for f in summary.white] == [("Scotch Game", -0.5), ("Italian Game", 0.5)]
     assert [(f.name, f.net) for f in summary.black] == [("French Defense", -0.5)]
@@ -63,7 +170,8 @@ def test_summary_counts_results_per_family_and_variation(game_1: Game) -> None:
             replace(game_1, pgn=pgn("French-Defense-Exchange-Variation"), result=Result.WIN),
             replace(game_1, pgn=pgn("French-Defense-Exchange-Variation"), result=Result.DRAW),
             replace(game_1, pgn=pgn("French-Defense-Advance-Variation"), result=Result.LOSS),
-        ]
+        ],
+        {},
     )
 
     family = summary.white[0]
@@ -186,9 +294,24 @@ def test_openings_endpoint_returns_summary(tmp_path: Path, game_1: Game) -> None
         "draws": 0,
         "losses": 0,
         "net": 0.5,
+        "eval_mean": None,
+        "eval_median": None,
         "variations": [],
     }
     assert response.json() == {
         "white": [{**variation, "name": "French Defense", "variations": [variation]}],
         "black": [],
     }
+
+
+def test_openings_endpoint_reports_the_stored_move_10_eval(tmp_path: Path, game_2: Game) -> None:
+    db_path = tmp_path / "db.sqlite3"
+    conn = connect(db_path)
+    insert_games(conn, [replace(game_2, pgn=pgn("Italian-Game", ITALIAN_MOVES))])
+    insert_position_analyses(conn, [analysis(cp=80)])
+    conn.close()
+    client = TestClient(create_app(tmp_path, db_path, Path("stockfish")))
+
+    [family] = client.get("/api/openings", params={"username": "alice"}).json()["black"]
+
+    assert (family["eval_mean"], family["eval_median"]) == (-0.8, -0.8)

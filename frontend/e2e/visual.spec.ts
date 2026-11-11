@@ -58,7 +58,7 @@ const GAME_DETAIL = {
 	},
 };
 
-const stats = { draws: 0, variations: [] };
+const stats = { draws: 0, eval_mean: null, eval_median: null, variations: [] };
 
 const OPENINGS = {
 	white: [
@@ -70,6 +70,8 @@ const OPENINGS = {
 			losses: 3,
 			draws: 1,
 			net: 2.5,
+			eval_mean: 0.42,
+			eval_median: -0.2,
 			variations: [{ ...stats, name: "Accelerated", games: 12, wins: 8, losses: 3, draws: 1, net: 2.5 }],
 		},
 		{ ...stats, name: "Barnes Opening", games: 5, wins: 1, losses: 4, net: -1.5 },

@@ -71,6 +71,11 @@ function OpeningRow({ opening }: { opening: OpeningStats }) {
 				{opening.games} {opening.games === 1 ? "game" : "games"} · {formatNet(opening.net)} · {opening.wins}W{" "}
 				{opening.draws}D {opening.losses}L
 			</span>
+			{opening.eval_mean !== null && opening.eval_median !== null && (
+				<span className="text-sm text-gray-600 dark:text-gray-300 tabular-nums">
+					After move 10: {formatNet(opening.eval_mean)} mean · {formatNet(opening.eval_median)} median
+				</span>
+			)}
 		</div>
 	);
 }

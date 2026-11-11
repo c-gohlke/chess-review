@@ -337,6 +337,10 @@ export interface components {
             losses: number;
             /** Net */
             net: number;
+            /** Eval Mean */
+            eval_mean: number | null;
+            /** Eval Median */
+            eval_median: number | null;
             /** Variations */
             variations: components["schemas"]["OpeningStats"][];
         };

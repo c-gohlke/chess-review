@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 	await page.route("**/api/games/*/analysis", (route) => route.fulfill({ status: 503 }));
 });
 
-const stats = { draws: 0, variations: [] };
+const stats = { draws: 0, eval_mean: null, eval_median: null, variations: [] };
 
 const OPENINGS = {
 	white: [
@@ -19,6 +19,8 @@ const OPENINGS = {
 			wins: 3,
 			losses: 0,
 			net: 1.5,
+			eval_mean: 0.42,
+			eval_median: -0.2,
 			variations: [{ ...stats, name: "Accelerated", games: 3, wins: 3, losses: 0, net: 1.5 }],
 		},
 	],
@@ -62,6 +64,7 @@ test("openings split by colour with drill-down into variations", async ({ page }
 
 	await expect(page.getByRole("button", { name: "White +1.5" })).toBeVisible();
 	await expect(page.getByRole("button", { name: "Black −0.5" })).toBeVisible();
+	await expect(page.getByText("After move 10: +0.4 mean · −0.2 median")).toBeVisible();
 
 	await expect(page.getByText("Accelerated")).toHaveCount(0);
 	await page.getByRole("button", { name: /London System/ }).click();

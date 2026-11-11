@@ -943,6 +943,28 @@
             "type": "number",
             "title": "Net"
           },
+          "eval_mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eval Mean"
+          },
+          "eval_median": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eval Median"
+          },
           "variations": {
             "items": {
               "$ref": "#/components/schemas/OpeningStats"
@@ -959,6 +981,8 @@
           "draws",
           "losses",
           "net",
+          "eval_mean",
+          "eval_median",
           "variations"
         ],
         "title": "OpeningStats"
