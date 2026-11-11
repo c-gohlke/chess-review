@@ -74,3 +74,44 @@ def test_flagging_in_a_good_position_overrides_the_board_reason() -> None:
 def test_the_flag_winner_gets_no_time_tag() -> None:
     steps = steps_for(MISSED_MATE, {})
     assert "lost_on_time" not in diagnose(steps, chess.BLACK, "bob", "bob won on time", 180).tags
+
+
+WING_PAWN = "1. e4 e5 2. Nf3 Nc6 3. h4 Nf6 1/2-1/2"
+# Ply 4 is before White's 3. h4, ply 5 after it.
+H4_COSTS = {5: PositionAnalysis("", -200, None, "")}
+
+
+def white_tags(pgn: str, overrides: dict[int, PositionAnalysis]) -> list[str]:
+    return diagnose(steps_for(pgn, overrides), chess.WHITE, "alice", "Game drawn by agreement", 180).tags
+
+
+def timing_tags(tags: list[str]) -> set[str]:
+    return {tag for tag in tags if "_pawns_" in tag}
+
+
+def test_a_costly_wing_pawn_push_the_engine_did_not_want_is_early() -> None:
+    tags = white_tags(WING_PAWN, {**H4_COSTS, 4: PositionAnalysis("", 0, None, "f1c4")})
+
+    assert timing_tags(tags) == {"kingside_pawns_early"}
+
+
+def test_skipping_the_engines_wing_pawn_push_is_late() -> None:
+    tags = white_tags(WING_PAWN, {**H4_COSTS, 4: PositionAnalysis("", 0, None, "a2a4")})
+
+    assert timing_tags(tags) == {"kingside_pawns_early", "queenside_pawns_late"}
+
+
+def test_a_cheap_wing_pawn_push_gets_no_timing_tag() -> None:
+    tags = white_tags(WING_PAWN, {4: PositionAnalysis("", 0, None, "a2a4"), 5: PositionAnalysis("", -50, None, "")})
+
+    assert timing_tags(tags) == set()
+
+
+def test_a_pawn_capture_is_not_a_push() -> None:
+    # Ply 2 is before White's 2. bxc5, ply 3 after it.
+    tags = white_tags(
+        "1. b4 c5 2. bxc5 Nc6 1/2-1/2",
+        {2: PositionAnalysis("", 0, None, "g1f3"), 3: PositionAnalysis("", -200, None, "")},
+    )
+
+    assert timing_tags(tags) == set()

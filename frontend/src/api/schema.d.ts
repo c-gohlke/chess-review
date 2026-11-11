@@ -160,6 +160,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/statistics/pawn-pushes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pawn Push Statistics */
+        get: operations["get_pawn_push_statistics_api_statistics_pawn_pushes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/analysis": {
         parameters: {
             query?: never;
@@ -346,6 +363,28 @@ export interface components {
             white: components["schemas"]["OpeningStats"][];
             /** Black */
             black: components["schemas"]["OpeningStats"][];
+        };
+        /** PawnPushCount */
+        PawnPushCount: {
+            /**
+             * Wing
+             * @enum {string}
+             */
+            wing: "queenside" | "kingside";
+            /**
+             * Timing
+             * @enum {string}
+             */
+            timing: "early" | "late";
+            /** Games */
+            games: number;
+        };
+        /** PawnPushSummary */
+        PawnPushSummary: {
+            /** Analysed Games */
+            analysed_games: number;
+            /** Counts */
+            counts: components["schemas"]["PawnPushCount"][];
         };
         /**
          * Result
@@ -643,6 +682,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ForkSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pawn_push_statistics_api_statistics_pawn_pushes_get: {
+        parameters: {
+            query: {
+                username: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PawnPushSummary"];
                 };
             };
             /** @description Validation Error */

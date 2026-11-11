@@ -27,6 +27,10 @@ ENDGAME_PIECES = 6
 DIRECT_MATE = 3
 LOW_CLOCK_SECONDS = 10
 LOW_CLOCK_SHARE = 0.05
+WINGS = {
+    "queenside": chess.BB_FILE_A | chess.BB_FILE_B | chess.BB_FILE_C,
+    "kingside": chess.BB_FILE_F | chess.BB_FILE_G | chess.BB_FILE_H,
+}
 
 CLOCK = re.compile(r"\[%clk (\d+):(\d+):(\d+(?:\.\d+)?)\]")
 
@@ -160,6 +164,26 @@ def _error_tags(step: Step, side: chess.Color) -> list[str]:
     return tags
 
 
+def _pushed_wing(board: chess.Board, move: chess.Move) -> str | None:
+    """The wing a pawn push is on; a capture is not a push, and the d and e pawns belong to neither wing."""
+    if board.piece_type_at(move.from_square) != chess.PAWN or board.is_capture(move):
+        return None
+    return next((wing for wing, files in WINGS.items() if files & chess.BB_SQUARES[move.from_square]), None)
+
+
+def _pawn_timing_tags(step: Step) -> set[str]:
+    """A costly push the engine didn't want is early; a costly move instead of the engine's push is late."""
+    best = _line(step.before)[:1]
+    best_wing = _pushed_wing(step.board, best[0]) if best else None
+    played_wing = _pushed_wing(step.board, step.move)
+    tags = set()
+    if played_wing is not None and played_wing != best_wing:
+        tags.add(f"{played_wing}_pawns_early")
+    if best_wing is not None and best_wing != played_wing:
+        tags.add(f"{best_wing}_pawns_late")
+    return tags
+
+
 def _missed_mate(step: Step, side: chess.Color) -> str | None:
     mate = _mate_for(step.before, side)
     if mate is None or mate > DIRECT_MATE or step.after.is_checkmate():
@@ -243,6 +267,9 @@ def diagnose(
         by_move[decisive.index] = _error_tags(decisive, side)
 
     tags = {tag for step_tags in by_move.values() for tag in step_tags}
+    for step in own:
+        if step.loss >= MISTAKE and step.before_win >= STILL_IN_GAME:
+            tags |= _pawn_timing_tags(step)
     tags |= _endgame_tags(steps, own, side)
     tags |= _termination_tags(termination, side_name, curve[-1] if curve else 50.0)
     if curve and max(curve) >= WINNING:
