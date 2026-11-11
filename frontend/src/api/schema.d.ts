@@ -177,6 +177,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/statistics/reasons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Reason Statistics */
+        get: operations["get_reason_statistics_api_statistics_reasons_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/analysis": {
         parameters: {
             query?: never;
@@ -390,11 +407,32 @@ export interface components {
             /** Counts */
             counts: components["schemas"]["PawnPushCount"][];
         };
+        /** ReasonCount */
+        ReasonCount: {
+            /** Name */
+            name: string;
+            /** Games */
+            games: number;
+        };
+        /** ReasonSummary */
+        ReasonSummary: {
+            losses: components["schemas"]["ResultReasons"];
+            wins: components["schemas"]["ResultReasons"];
+        };
         /**
          * Result
          * @enum {string}
          */
         Result: "win" | "loss" | "draw";
+        /** ResultReasons */
+        ResultReasons: {
+            /** Games */
+            games: number;
+            /** Deciding */
+            deciding: components["schemas"]["ReasonCount"][];
+            /** Tags */
+            tags: components["schemas"]["ReasonCount"][];
+        };
         /**
          * TimeClass
          * @enum {string}
@@ -717,6 +755,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PawnPushSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_reason_statistics_api_statistics_reasons_get: {
+        parameters: {
+            query: {
+                username: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReasonSummary"];
                 };
             };
             /** @description Validation Error */

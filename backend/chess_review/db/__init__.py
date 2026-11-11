@@ -318,6 +318,19 @@ def list_loss_reasons(conn: sqlite3.Connection, username: str) -> list[GameReaso
     return [GameReason(row["game_id"], row["decided_by"], row["tags"].split()) for row in rows]
 
 
+def list_win_reasons(conn: sqlite3.Connection, username: str) -> list[GameReason]:
+    """What went wrong for the opponent in each game the player won."""
+    rows = conn.execute(
+        """
+        SELECT opponent_reasons.game_id, opponent_reasons.decided_by, opponent_reasons.tags
+        FROM opponent_reasons JOIN games ON games.id = opponent_reasons.game_id
+        WHERE games.username = ? AND games.result = ? AND opponent_reasons.decided_by != ?
+        """,
+        (username, Result.WIN, NO_MOVES),
+    )
+    return [GameReason(row["game_id"], row["decided_by"], row["tags"].split()) for row in rows]
+
+
 def list_game_reasons(conn: sqlite3.Connection, username: str) -> list[GameReason]:
     rows = conn.execute(
         """

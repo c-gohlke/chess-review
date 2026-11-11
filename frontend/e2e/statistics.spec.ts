@@ -20,10 +20,23 @@ const PAWN_PUSHES = {
 	],
 };
 
+const REASONS = {
+	losses: {
+		games: 200,
+		deciding: [
+			{ name: "Endgame error", games: 70 },
+			{ name: "Hung a piece", games: 50 },
+		],
+		tags: [{ name: "Low on time", games: 90 }],
+	},
+	wins: { games: 160, deciding: [{ name: "Fork", games: 40 }], tags: [{ name: "Missed a fork", games: 8 }] },
+};
+
 const ANALYSIS = { games: 10, unanalysed: 0, phase: "idle", done: 0, total: 0, error: null, running_player: null };
 
 test.beforeEach(async ({ page }) => {
 	await page.route("**/api/statistics/pawn-pushes?*", (route) => route.fulfill({ json: PAWN_PUSHES }));
+	await page.route("**/api/statistics/reasons?*", (route) => route.fulfill({ json: REASONS }));
 });
 
 async function openStatistics(page: Page, forks: typeof FORKS) {
@@ -41,6 +54,22 @@ test("shows how often the player lost to each kind of fork", async ({ page }) =>
 	await expect(page.getByText("It was the deciding error in 12 (6.0%).")).toBeVisible();
 	await expect(page.getByRole("row", { name: "Knight fork 20 10.0%" })).toBeVisible();
 	await expect(page.getByRole("row", { name: "Pawn fork, royal (king and queen) 5 2.5%" })).toBeVisible();
+});
+
+test("shows why games were lost and won", async ({ page }) => {
+	await openStatistics(page, FORKS);
+
+	await expect(
+		page.getByText("The deciding error in each of 200 analysed games, and every error alice made"),
+	).toBeVisible();
+	await expect(page.getByRole("row", { name: "Endgame error 70 35.0%" })).toBeVisible();
+	await expect(page.getByRole("row", { name: "Hung a piece 50 25.0%" })).toBeVisible();
+	await expect(page.getByRole("row", { name: "Low on time 90 45.0%" })).toBeVisible();
+	await expect(
+		page.getByText("The deciding error in each of 160 analysed games, and every error the opponent made"),
+	).toBeVisible();
+	await expect(page.getByRole("row", { name: "Fork 40 25.0%" })).toBeVisible();
+	await expect(page.getByRole("row", { name: "Missed a fork 8 5.0%" })).toBeVisible();
 });
 
 test("shows how often wing pawn pushes came too early or too late", async ({ page }) => {

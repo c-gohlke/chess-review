@@ -7,6 +7,9 @@ export type OpeningStats = components["schemas"]["OpeningStats"];
 export type OpeningSummary = components["schemas"]["OpeningSummary"];
 export type ForkSummary = components["schemas"]["ForkSummary"];
 export type PawnPushSummary = components["schemas"]["PawnPushSummary"];
+export type ReasonSummary = components["schemas"]["ReasonSummary"];
+export type ResultReasons = components["schemas"]["ResultReasons"];
+export type ReasonCount = components["schemas"]["ReasonCount"];
 export type AnalysisState = components["schemas"]["AnalysisState"];
 export type TimeClass = components["schemas"]["TimeClass"];
 export type Colour = "white" | "black";
@@ -44,6 +47,11 @@ export async function getForkStatistics(username: string): Promise<ForkSummary> 
 
 export async function getPawnPushStatistics(username: string): Promise<PawnPushSummary> {
 	const response = await checkOk(await fetch(`/api/statistics/pawn-pushes?${new URLSearchParams({ username })}`));
+	return response.json();
+}
+
+export async function getReasonStatistics(username: string): Promise<ReasonSummary> {
+	const response = await checkOk(await fetch(`/api/statistics/reasons?${new URLSearchParams({ username })}`));
 	return response.json();
 }
 

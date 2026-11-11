@@ -103,6 +103,33 @@ const PAWN_PUSHES = {
 	],
 };
 
+const REASONS = {
+	losses: {
+		games: 58,
+		deciding: [
+			{ name: "Endgame error", games: 14 },
+			{ name: "Hung a piece", games: 12 },
+			{ name: "Lost on time in an OK position", games: 9 },
+		],
+		tags: [
+			{ name: "No immediate tactic", games: 35 },
+			{ name: "Hung a piece", games: 22 },
+			{ name: "Missed a fork", games: 4 },
+		],
+	},
+	wins: {
+		games: 55,
+		deciding: [
+			{ name: "Hung a piece", games: 15 },
+			{ name: "Fork", games: 6 },
+		],
+		tags: [
+			{ name: "Hung a piece", games: 24 },
+			{ name: "Allowed a fork", games: 9 },
+		],
+	},
+};
+
 const ANALYSIS = { games: 120, unanalysed: 4, phase: "idle", done: 0, total: 0, error: null, running_player: null };
 
 test.beforeEach(async ({ page }) => {
@@ -116,6 +143,7 @@ test.beforeEach(async ({ page }) => {
 	await page.route("**/api/openings?*", (route) => route.fulfill({ json: OPENINGS }));
 	await page.route("**/api/statistics/forks?*", (route) => route.fulfill({ json: FORKS }));
 	await page.route("**/api/statistics/pawn-pushes?*", (route) => route.fulfill({ json: PAWN_PUSHES }));
+	await page.route("**/api/statistics/reasons?*", (route) => route.fulfill({ json: REASONS }));
 	await page.route("**/api/analysis?*", (route) => route.fulfill({ json: ANALYSIS }));
 	await page.goto("/");
 });
@@ -162,6 +190,7 @@ test("statistics view", async ({ page }) => {
 	await expect(page.getByRole("button", { name: /^Analyse 4 games/ })).toBeVisible();
 	await expect(page.getByRole("row", { name: /Queen fork/ })).toBeVisible();
 	await expect(page.getByRole("row", { name: /King side/ })).toBeVisible();
+	await expect(page.getByRole("row", { name: /Allowed a fork/ })).toBeVisible();
 
 	await snapshot(page, "statistics.png");
 });
