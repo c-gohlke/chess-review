@@ -1,7 +1,18 @@
+import random
+import time
 from pathlib import Path
 from typing import Any
 
-from chess_review.importers.baseline import GAMES_PER_PLAYER, band_games, band_opponents, baseline_path
+import httpx2
+
+from chess_review.importers.baseline import (
+    GAMES_PER_PLAYER,
+    SEEDS,
+    band_games,
+    band_opponents,
+    baseline_path,
+    find_seeds,
+)
 
 
 def raw(
@@ -49,6 +60,24 @@ def test_band_opponents_are_rapid_opponents_rated_in_the_band() -> None:
     ]
 
     assert band_opponents(raws, "alice", 1600) == {"bob"}
+
+
+def test_find_seeds_skips_a_country_whose_player_list_is_missing() -> None:
+    # Chess.com answers 404 for the US list.
+    def chesscom(request: httpx2.Request) -> httpx2.Response:
+        if request.url.path == "/pub/country/US/players":
+            return httpx2.Response(404)
+        if request.url.path.startswith("/pub/country/"):
+            return httpx2.Response(200, json={"players": [f"player-{request.url.path.split('/')[3]}"]})
+        last = {"rating": 1650, "date": time.time()}
+        return httpx2.Response(200, json={"chess_rapid": {"last": last}})
+
+    with httpx2.Client(transport=httpx2.MockTransport(chesscom)) as client:
+        # This random seed tries the US first.
+        seeds = find_seeds(client, 1600, random.Random(31))
+
+    assert len(seeds) == SEEDS
+    assert "player-US" not in seeds
 
 
 def test_baseline_lives_next_to_the_main_database() -> None:
