@@ -91,7 +91,50 @@ const FORKS = {
 		{ name: "Pawn fork, royal (king and queen)", losses: 5 },
 		{ name: "Queen fork", losses: 5 },
 	],
+	losses_with_missed_fork: 14,
+	missed_kinds: [
+		{ name: "Knight fork", losses: 10 },
+		{ name: "Bishop fork", losses: 4 },
+	],
 };
+
+const BASELINES = [
+	{
+		band: 1600,
+		games: 1000,
+		forks: {
+			analysed_losses: 420,
+			losses_with_fork: 70,
+			decided_by_fork: 30,
+			kinds: [
+				{ name: "Knight fork", losses: 45 },
+				{ name: "Queen fork", losses: 20 },
+			],
+			losses_with_missed_fork: 35,
+			missed_kinds: [{ name: "Knight fork", losses: 30 }],
+		},
+		pawn_pushes: {
+			analysed_games: 1000,
+			counts: [
+				{ wing: "queenside", timing: "early", games: 120 },
+				{ wing: "queenside", timing: "late", games: 150 },
+				{ wing: "kingside", timing: "early", games: 180 },
+				{ wing: "kingside", timing: "late", games: 60 },
+			],
+		},
+		reasons: {
+			losses: {
+				games: 420,
+				deciding: [
+					{ name: "Hung a piece", games: 110 },
+					{ name: "Endgame error", games: 80 },
+				],
+				tags: [{ name: "No immediate tactic", games: 230 }],
+			},
+			wins: { games: 450, deciding: [{ name: "Hung a piece", games: 120 }], tags: [] },
+		},
+	},
+];
 
 const PAWN_PUSHES = {
 	analysed_games: 116,
@@ -144,6 +187,7 @@ test.beforeEach(async ({ page }) => {
 	await page.route("**/api/statistics/forks?*", (route) => route.fulfill({ json: FORKS }));
 	await page.route("**/api/statistics/pawn-pushes?*", (route) => route.fulfill({ json: PAWN_PUSHES }));
 	await page.route("**/api/statistics/reasons?*", (route) => route.fulfill({ json: REASONS }));
+	await page.route("**/api/statistics/baselines", (route) => route.fulfill({ json: BASELINES }));
 	await page.route("**/api/analysis?*", (route) => route.fulfill({ json: ANALYSIS }));
 	await page.goto("/");
 });
@@ -191,6 +235,8 @@ test("statistics view", async ({ page }) => {
 	await expect(page.getByRole("row", { name: /Queen fork/ })).toBeVisible();
 	await expect(page.getByRole("row", { name: /King side/ })).toBeVisible();
 	await expect(page.getByRole("row", { name: /Allowed a fork/ })).toBeVisible();
+	await page.getByLabel("Compare with").selectOption({ label: "Players rated 1600–1699 (1000 rapid games)" });
+	await expect(page.getByRole("columnheader", { name: "Baseline" }).first()).toBeVisible();
 
 	await snapshot(page, "statistics.png");
 });

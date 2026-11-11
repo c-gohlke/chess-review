@@ -6,6 +6,8 @@ export type Evaluation = components["schemas"]["Evaluation"];
 export type OpeningStats = components["schemas"]["OpeningStats"];
 export type OpeningSummary = components["schemas"]["OpeningSummary"];
 export type ForkSummary = components["schemas"]["ForkSummary"];
+export type ForkKind = components["schemas"]["ForkKind"];
+export type BaselineStatistics = components["schemas"]["BaselineStatistics"];
 export type PawnPushSummary = components["schemas"]["PawnPushSummary"];
 export type ReasonSummary = components["schemas"]["ReasonSummary"];
 export type ResultReasons = components["schemas"]["ResultReasons"];
@@ -52,6 +54,11 @@ export async function getPawnPushStatistics(username: string): Promise<PawnPushS
 
 export async function getReasonStatistics(username: string): Promise<ReasonSummary> {
 	const response = await checkOk(await fetch(`/api/statistics/reasons?${new URLSearchParams({ username })}`));
+	return response.json();
+}
+
+export async function getBaselines(): Promise<BaselineStatistics[]> {
+	const response = await checkOk(await fetch("/api/statistics/baselines"));
 	return response.json();
 }
 

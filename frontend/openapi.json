@@ -544,6 +544,29 @@
         }
       }
     },
+    "/api/statistics/baselines": {
+      "get": {
+        "summary": "Get Baselines",
+        "description": "Every band that has been sampled; see importers/baseline.py.",
+        "operationId": "get_baselines_api_statistics_baselines_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BaselineStatistics"
+                  },
+                  "type": "array",
+                  "title": "Response Get Baselines Api Statistics Baselines Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/analysis": {
       "get": {
         "summary": "Get Analysis",
@@ -709,6 +732,36 @@
         ],
         "title": "AnalysisState"
       },
+      "BaselineStatistics": {
+        "properties": {
+          "band": {
+            "type": "integer",
+            "title": "Band"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          },
+          "forks": {
+            "$ref": "#/components/schemas/ForkSummary"
+          },
+          "pawn_pushes": {
+            "$ref": "#/components/schemas/PawnPushSummary"
+          },
+          "reasons": {
+            "$ref": "#/components/schemas/ReasonSummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "band",
+          "games",
+          "forks",
+          "pawn_pushes",
+          "reasons"
+        ],
+        "title": "BaselineStatistics"
+      },
       "Evaluation": {
         "properties": {
           "cp": {
@@ -780,6 +833,17 @@
             },
             "type": "array",
             "title": "Kinds"
+          },
+          "losses_with_missed_fork": {
+            "type": "integer",
+            "title": "Losses With Missed Fork"
+          },
+          "missed_kinds": {
+            "items": {
+              "$ref": "#/components/schemas/ForkKind"
+            },
+            "type": "array",
+            "title": "Missed Kinds"
           }
         },
         "type": "object",
@@ -787,7 +851,9 @@
           "analysed_losses",
           "losses_with_fork",
           "decided_by_fork",
-          "kinds"
+          "kinds",
+          "losses_with_missed_fork",
+          "missed_kinds"
         ],
         "title": "ForkSummary"
       },
