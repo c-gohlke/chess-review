@@ -148,7 +148,7 @@ def _families(games: list[Game], analyses: Mapping[str, PositionAnalysis]) -> li
         stats.sort(key=lambda variation: -variation.games)
         all_outcomes = [outcome for outcomes in variations.values() for outcome in outcomes]
         families.append(_stats(family, all_outcomes, stats))
-    return sorted(families, key=lambda family: (family.net, -family.games))
+    return sorted(families, key=lambda family: (-family.games, family.net))
 
 
 def summarize_openings(games: list[Game], analyses: Mapping[str, PositionAnalysis]) -> OpeningSummary:
