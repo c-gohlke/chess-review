@@ -505,6 +505,45 @@
         }
       }
     },
+    "/api/statistics/reasons": {
+      "get": {
+        "summary": "Get Reason Statistics",
+        "operationId": "get_reason_statistics_api_statistics_reasons_get",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReasonSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/analysis": {
       "get": {
         "summary": "Get Analysis",
@@ -1102,6 +1141,40 @@
         ],
         "title": "PawnPushSummary"
       },
+      "ReasonCount": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "games"
+        ],
+        "title": "ReasonCount"
+      },
+      "ReasonSummary": {
+        "properties": {
+          "losses": {
+            "$ref": "#/components/schemas/ResultReasons"
+          },
+          "wins": {
+            "$ref": "#/components/schemas/ResultReasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "losses",
+          "wins"
+        ],
+        "title": "ReasonSummary"
+      },
       "Result": {
         "type": "string",
         "enum": [
@@ -1110,6 +1183,35 @@
           "draw"
         ],
         "title": "Result"
+      },
+      "ResultReasons": {
+        "properties": {
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          },
+          "deciding": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCount"
+            },
+            "type": "array",
+            "title": "Deciding"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCount"
+            },
+            "type": "array",
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "games",
+          "deciding",
+          "tags"
+        ],
+        "title": "ResultReasons"
       },
       "TimeClass": {
         "type": "string",

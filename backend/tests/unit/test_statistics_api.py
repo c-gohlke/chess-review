@@ -4,9 +4,19 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from chess_review.api.app import create_app
-from chess_review.db import NO_MOVES, Game, GameReason, Result, connect, insert_games, replace_game_reasons
+from chess_review.db import (
+    NO_MOVES,
+    Game,
+    GameReason,
+    Result,
+    connect,
+    insert_games,
+    replace_game_reasons,
+    replace_opponent_reasons,
+)
 from chess_review.patterns.forks import ForkKind, fork_label, summarize_forks
 from chess_review.patterns.pawn_pushes import PawnPushCount, summarize_pawn_pushes
+from chess_review.patterns.result_reasons import ReasonCount, ResultReasons, summarize_result_reasons
 
 
 def reason(decided_by: str, *tags: str) -> GameReason:
@@ -109,4 +119,66 @@ def test_pawn_push_statistics_count_that_players_analysed_games_of_any_result(
         ("queenside", "late"): 0,
         ("kingside", "early"): 0,
         ("kingside", "late"): 2,
+    }
+
+
+def test_reason_summary_counts_deciding_reasons_and_groups_forks() -> None:
+    summary = summarize_result_reasons(
+        [
+            reason("hanging_piece", "hanging_piece", "fork_knight", "fork_queen_royal", "missed_fork_bishop"),
+            reason("hanging_piece", "hanging_piece", "low_clock_blunder"),
+            reason("endgame", "endgame_rook"),
+        ],
+        [],
+    )
+
+    assert summary.losses.games == 3
+    assert summary.losses.deciding == [ReasonCount("Hung a piece", 2), ReasonCount("Endgame error", 1)]
+    assert summary.losses.tags == [
+        ReasonCount("Hung a piece", 2),
+        ReasonCount("Allowed a fork", 1),
+        ReasonCount("Endgame error with rooks", 1),
+        ReasonCount("Low on time", 1),
+        ReasonCount("Missed a fork", 1),
+    ]
+    assert summary.wins == ResultReasons(0, [], [])
+
+
+def test_reasons_endpoint_explains_losses_by_own_errors_and_wins_by_the_opponents(
+    tmp_path: Path, game_1: Game, game_2: Game
+) -> None:
+    db_path = tmp_path / "db.sqlite3"
+    conn = connect(db_path)
+    draw = replace(game_2, source_id="draw", result=Result.DRAW)
+    insert_games(conn, [replace(game_1, result=Result.WIN), replace(game_2, result=Result.LOSS), draw])
+    replace_game_reasons(
+        conn,
+        [
+            GameReason(1, "positional", ["had_winning_position"]),
+            GameReason(2, "allowed_mate", ["allowed_mate_in_1"]),
+            GameReason(3, "pin", ["pin"]),
+        ],
+    )
+    replace_opponent_reasons(
+        conn,
+        [
+            GameReason(1, "fork", ["fork_knight"]),
+            GameReason(2, "positional", []),
+            GameReason(3, "skewer", ["skewer"]),
+        ],
+    )
+    conn.close()
+    client = TestClient(create_app(tmp_path, db_path, Path("stockfish")))
+
+    summary = client.get("/api/statistics/reasons", params={"username": "alice"}).json()
+
+    assert summary["losses"] == {
+        "games": 1,
+        "deciding": [{"name": "Allowed a mate", "games": 1}],
+        "tags": [{"name": "Allowed mate in 1", "games": 1}],
+    }
+    assert summary["wins"] == {
+        "games": 1,
+        "deciding": [{"name": "Fork", "games": 1}],
+        "tags": [{"name": "Allowed a fork", "games": 1}],
     }
