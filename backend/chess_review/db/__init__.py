@@ -186,6 +186,10 @@ def list_usernames(conn: sqlite3.Connection) -> list[str]:
     return [row["username"] for row in rows]
 
 
+def list_all_games(conn: sqlite3.Connection) -> list[Game]:
+    return [_row_to_game(row) for row in conn.execute("SELECT * FROM games ORDER BY id DESC").fetchall()]
+
+
 def list_games(conn: sqlite3.Connection, username: str) -> list[Game]:
     rows = conn.execute("SELECT * FROM games WHERE username = ? ORDER BY id DESC", (username,)).fetchall()
     return [_row_to_game(row) for row in rows]
