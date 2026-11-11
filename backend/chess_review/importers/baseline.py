@@ -83,7 +83,12 @@ def find_seeds(client: httpx2.Client, band: int, rng: random.Random) -> list[str
     """At most one seed per country, so the sample does not grow out of one country's circle."""
     seeds = []
     for country in rng.sample(COUNTRIES, len(COUNTRIES)):
-        players: list[str] = get(client, f"{COUNTRY_API}/{country}/players").json()["players"]
+        try:
+            players: list[str] = get(client, f"{COUNTRY_API}/{country}/players").json()["players"]
+        except httpx2.HTTPStatusError:
+            # Chess.com answers 404 for some countries' lists, the US among them.
+            print(f"no player list for {country}", flush=True)
+            continue
         candidates = (
             player for player in rng.sample(players, len(players)) if _is_active_in_band(client, player, band)
         )
