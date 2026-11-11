@@ -10,7 +10,21 @@ const FORKS = {
 	],
 };
 
+const PAWN_PUSHES = {
+	analysed_games: 400,
+	counts: [
+		{ wing: "queenside", timing: "early", games: 10 },
+		{ wing: "queenside", timing: "late", games: 40 },
+		{ wing: "kingside", timing: "early", games: 60 },
+		{ wing: "kingside", timing: "late", games: 2 },
+	],
+};
+
 const ANALYSIS = { games: 10, unanalysed: 0, phase: "idle", done: 0, total: 0, error: null, running_player: null };
+
+test.beforeEach(async ({ page }) => {
+	await page.route("**/api/statistics/pawn-pushes?*", (route) => route.fulfill({ json: PAWN_PUSHES }));
+});
 
 async function openStatistics(page: Page, forks: typeof FORKS) {
 	await page.route("**/api/users", (route) => route.fulfill({ json: ["alice"] }));
@@ -27,6 +41,14 @@ test("shows how often the player lost to each kind of fork", async ({ page }) =>
 	await expect(page.getByText("It was the deciding error in 12 (6.0%).")).toBeVisible();
 	await expect(page.getByRole("row", { name: "Knight fork 20 10.0%" })).toBeVisible();
 	await expect(page.getByRole("row", { name: "Pawn fork, royal (king and queen) 5 2.5%" })).toBeVisible();
+});
+
+test("shows how often wing pawn pushes came too early or too late", async ({ page }) => {
+	await openStatistics(page, FORKS);
+
+	await expect(page.getByText("Games out of 400 analysed")).toBeVisible();
+	await expect(page.getByRole("row", { name: "Queen side 10 (2.5%) 40 (10.0%)" })).toBeVisible();
+	await expect(page.getByRole("row", { name: "King side 60 (15.0%) 2 (0.5%)" })).toBeVisible();
 });
 
 test("explains when the player's games have not been analysed", async ({ page }) => {

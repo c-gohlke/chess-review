@@ -466,6 +466,45 @@
         }
       }
     },
+    "/api/statistics/pawn-pushes": {
+      "get": {
+        "summary": "Get Pawn Push Statistics",
+        "operationId": "get_pawn_push_statistics_api_statistics_pawn_pushes_get",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PawnPushSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/analysis": {
       "get": {
         "summary": "Get Analysis",
@@ -986,6 +1025,58 @@
           "black"
         ],
         "title": "OpeningSummary"
+      },
+      "PawnPushCount": {
+        "properties": {
+          "wing": {
+            "type": "string",
+            "enum": [
+              "queenside",
+              "kingside"
+            ],
+            "title": "Wing"
+          },
+          "timing": {
+            "type": "string",
+            "enum": [
+              "early",
+              "late"
+            ],
+            "title": "Timing"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          }
+        },
+        "type": "object",
+        "required": [
+          "wing",
+          "timing",
+          "games"
+        ],
+        "title": "PawnPushCount"
+      },
+      "PawnPushSummary": {
+        "properties": {
+          "analysed_games": {
+            "type": "integer",
+            "title": "Analysed Games"
+          },
+          "counts": {
+            "items": {
+              "$ref": "#/components/schemas/PawnPushCount"
+            },
+            "type": "array",
+            "title": "Counts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "analysed_games",
+          "counts"
+        ],
+        "title": "PawnPushSummary"
       },
       "Result": {
         "type": "string",

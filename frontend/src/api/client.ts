@@ -6,6 +6,7 @@ export type Evaluation = components["schemas"]["Evaluation"];
 export type OpeningStats = components["schemas"]["OpeningStats"];
 export type OpeningSummary = components["schemas"]["OpeningSummary"];
 export type ForkSummary = components["schemas"]["ForkSummary"];
+export type PawnPushSummary = components["schemas"]["PawnPushSummary"];
 export type AnalysisState = components["schemas"]["AnalysisState"];
 export type TimeClass = components["schemas"]["TimeClass"];
 export type Colour = "white" | "black";
@@ -38,6 +39,11 @@ export async function analyseGame(id: number): Promise<GameDetail> {
 
 export async function getForkStatistics(username: string): Promise<ForkSummary> {
 	const response = await checkOk(await fetch(`/api/statistics/forks?${new URLSearchParams({ username })}`));
+	return response.json();
+}
+
+export async function getPawnPushStatistics(username: string): Promise<PawnPushSummary> {
+	const response = await checkOk(await fetch(`/api/statistics/pawn-pushes?${new URLSearchParams({ username })}`));
 	return response.json();
 }
 

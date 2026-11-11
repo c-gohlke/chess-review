@@ -317,6 +317,18 @@ def list_loss_reasons(conn: sqlite3.Connection, username: str) -> list[GameReaso
     return [GameReason(row["game_id"], row["decided_by"], row["tags"].split()) for row in rows]
 
 
+def list_game_reasons(conn: sqlite3.Connection, username: str) -> list[GameReason]:
+    rows = conn.execute(
+        """
+        SELECT game_reasons.game_id, game_reasons.decided_by, game_reasons.tags
+        FROM game_reasons JOIN games ON games.id = game_reasons.game_id
+        WHERE games.username = ? AND game_reasons.decided_by != ?
+        """,
+        (username, NO_MOVES),
+    )
+    return [GameReason(row["game_id"], row["decided_by"], row["tags"].split()) for row in rows]
+
+
 def load_position_analyses(conn: sqlite3.Connection) -> dict[str, PositionAnalysis]:
     rows = conn.execute("SELECT position, cp, mate, pv FROM position_analyses")
     return {row["position"]: PositionAnalysis(row["position"], row["cp"], row["mate"], row["pv"]) for row in rows}

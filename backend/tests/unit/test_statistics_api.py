@@ -4,8 +4,9 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from chess_review.api.app import create_app
-from chess_review.db import Game, GameReason, Result, connect, insert_games, replace_game_reasons
+from chess_review.db import NO_MOVES, Game, GameReason, Result, connect, insert_games, replace_game_reasons
 from chess_review.patterns.forks import ForkKind, fork_label, summarize_forks
+from chess_review.patterns.pawn_pushes import PawnPushCount, summarize_pawn_pushes
 
 
 def reason(decided_by: str, *tags: str) -> GameReason:
@@ -59,4 +60,53 @@ def test_statistics_only_count_that_players_analysed_losses(tmp_path: Path, game
         "losses_with_fork": 1,
         "decided_by_fork": 1,
         "kinds": [{"name": "Knight fork", "losses": 1}],
+    }
+
+
+def test_pawn_push_summary_counts_each_game_once_per_wing_and_timing() -> None:
+    summary = summarize_pawn_pushes(
+        [
+            reason("gradual_decline", "kingside_pawns_early", "queenside_pawns_late"),
+            reason("hanging_piece", "kingside_pawns_early", "hanging_piece"),
+            reason("opening"),
+        ]
+    )
+
+    assert summary.analysed_games == 3
+    assert summary.counts == [
+        PawnPushCount("queenside", "early", 0),
+        PawnPushCount("queenside", "late", 1),
+        PawnPushCount("kingside", "early", 2),
+        PawnPushCount("kingside", "late", 0),
+    ]
+
+
+def test_pawn_push_statistics_count_that_players_analysed_games_of_any_result(
+    tmp_path: Path, game_1: Game, game_2: Game
+) -> None:
+    db_path = tmp_path / "db.sqlite3"
+    conn = connect(db_path)
+    other_player = replace(game_2, source_id="other", username="carol")
+    no_moves = replace(game_2, source_id="empty")
+    insert_games(conn, [replace(game_1, result=Result.WIN), game_2, other_player, no_moves])
+    replace_game_reasons(
+        conn,
+        [
+            GameReason(1, "gradual_decline", ["kingside_pawns_late"]),
+            GameReason(2, "opening", ["kingside_pawns_late", "queenside_pawns_early"]),
+            GameReason(3, "opening", ["kingside_pawns_late"]),
+            GameReason(4, NO_MOVES, []),
+        ],
+    )
+    conn.close()
+    client = TestClient(create_app(tmp_path, db_path, Path("stockfish")))
+
+    summary = client.get("/api/statistics/pawn-pushes", params={"username": "alice"}).json()
+
+    assert summary["analysed_games"] == 2
+    assert {(row["wing"], row["timing"]): row["games"] for row in summary["counts"]} == {
+        ("queenside", "early"): 1,
+        ("queenside", "late"): 0,
+        ("kingside", "early"): 0,
+        ("kingside", "late"): 2,
     }
