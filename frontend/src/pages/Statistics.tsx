@@ -33,13 +33,40 @@ function BaselineNote({ part, whole }: { part: number; whole: number }) {
 	return <span className="text-gray-600 dark:text-gray-400"> · baseline {percent(part, whole)}</span>;
 }
 
+// Green for what won the player games, red for what lost them.
+type Tone = "won" | "lost" | "neutral";
+
+const TONES: Record<Tone, string> = {
+	won: "text-green-700 dark:text-green-400",
+	lost: "text-red-700 dark:text-red-400",
+	neutral: "",
+};
+
+// Stays in view while its table scrolls past, so long tables keep their context. The background hides the rows below.
+function StickyHead({ title, tone, children }: { title: string; tone: Tone; children: React.ReactNode }) {
+	return (
+		<thead className="sticky top-0 bg-[Canvas] dark:bg-[#2b2d31]">
+			<tr>
+				<th colSpan={4} className={`pt-2 text-left text-sm font-semibold ${TONES[tone]}`}>
+					{title}
+				</th>
+			</tr>
+			<tr className="text-left text-sm text-gray-600 dark:text-gray-400">{children}</tr>
+		</thead>
+	);
+}
+
 function ShareTable({
+	title,
+	tone,
 	heading,
 	countHeading,
 	rows,
 	total,
 	baseline,
 }: {
+	title: string;
+	tone: Tone;
 	heading: string;
 	countHeading: string;
 	rows: { name: string; count: number }[];
@@ -52,18 +79,16 @@ function ShareTable({
 	const allRows = [...rows, ...baselineOnly.map((name) => ({ name, count: 0 }))];
 	return (
 		<table className="mt-4 w-full">
-			<thead>
-				<tr className="text-left text-sm text-gray-600 dark:text-gray-400">
-					<th className="py-1 font-normal">{heading}</th>
-					<th className="py-1 pl-3 text-right font-normal">{countHeading}</th>
-					<th className="py-1 pl-3 text-right font-normal">Share</th>
-					{baseline && <th className="py-1 pl-3 text-right font-normal">Baseline</th>}
-				</tr>
-			</thead>
+			<StickyHead title={title} tone={tone}>
+				<th className="py-1 font-normal">{heading}</th>
+				<th className="py-1 pl-3 text-right font-normal">{countHeading}</th>
+				<th className="py-1 pl-3 text-right font-normal">Share</th>
+				{baseline && <th className="py-1 pl-3 text-right font-normal">Baseline</th>}
+			</StickyHead>
 			<tbody>
 				{allRows.map((row) => (
 					<tr key={row.name} className="border-t">
-						<td className="py-2">{row.name}</td>
+						<td className={`py-2 ${TONES[tone]}`}>{row.name}</td>
 						<td className="py-2 pl-3 text-right tabular-nums">{row.count}</td>
 						<td className="py-2 pl-3 text-right tabular-nums">{percent(row.count, total)}</td>
 						{baseline && (
@@ -97,6 +122,8 @@ function Forks({ player, forks, baseline }: { player: string; forks: ForkSummary
 				{baseline && <BaselineNote part={baseline.decided_by_fork} whole={base} />}.
 			</p>
 			<ShareTable
+				title="Losses to forks"
+				tone="lost"
 				heading="Kind of fork"
 				countHeading="Losses"
 				rows={forkRows(forks.kinds)}
@@ -109,6 +136,8 @@ function Forks({ player, forks, baseline }: { player: string; forks: ForkSummary
 				{baseline && <BaselineNote part={baseline.losses_with_missed_fork} whole={base} />}.
 			</p>
 			<ShareTable
+				title="Losses to forks"
+				tone="lost"
 				heading="Kind of fork missed"
 				countHeading="Losses"
 				rows={forkRows(forks.missed_kinds)}
@@ -152,13 +181,11 @@ function PawnPushes({ pawnPushes, baseline }: { pawnPushes: PawnPushSummary; bas
 			<h2 className="mt-8 mb-2 text-lg font-bold">Pawn pushes</h2>
 			<p>Games out of {total} analysed where a pawn push on a wing came too early or too late.</p>
 			<table className="mt-4 w-full">
-				<thead>
-					<tr className="text-left text-sm text-gray-600 dark:text-gray-400">
-						<th className="py-1 font-normal">Wing</th>
-						<th className="py-1 text-right font-normal">Too early</th>
-						<th className="py-1 text-right font-normal">Too late</th>
-					</tr>
-				</thead>
+				<StickyHead title="Pawn pushes" tone="neutral">
+					<th className="py-1 font-normal">Wing</th>
+					<th className="py-1 text-right font-normal">Too early</th>
+					<th className="py-1 text-right font-normal">Too late</th>
+				</StickyHead>
 				<tbody>
 					{WINGS.map(([wing, label]) => (
 						<tr key={wing} className="border-t">
@@ -183,11 +210,13 @@ function reasonRows(counts: ReasonCount[]): { name: string; count: number }[] {
 
 function ResultReasonsSection({
 	title,
+	tone,
 	whose,
 	reasons,
 	baseline,
 }: {
 	title: string;
+	tone: Tone;
 	whose: string;
 	reasons: ResultReasons;
 	baseline: ResultReasons | null;
@@ -195,11 +224,13 @@ function ResultReasonsSection({
 	if (reasons.games === 0) return null;
 	return (
 		<>
-			<h2 className="mt-8 mb-2 text-lg font-bold">{title}</h2>
+			<h2 className={`mt-8 mb-2 text-lg font-bold ${TONES[tone]}`}>{title}</h2>
 			<p>
 				The deciding error in each of {reasons.games} analysed games, and every error {whose} made in them.
 			</p>
 			<ShareTable
+				title={title}
+				tone={tone}
 				heading="Deciding error"
 				countHeading="Games"
 				rows={reasonRows(reasons.deciding)}
@@ -207,6 +238,8 @@ function ResultReasonsSection({
 				baseline={baseline && comparison(reasonRows(baseline.deciding), baseline.games)}
 			/>
 			<ShareTable
+				title={title}
+				tone={tone}
 				heading="Errors in the game"
 				countHeading="Games"
 				rows={reasonRows(reasons.tags)}
@@ -283,13 +316,14 @@ export function Statistics({ player }: { player: string }) {
 		<section className="mx-auto w-full max-w-[600px]">
 			<EngineRun player={player} onFinished={() => setRunsFinished((count) => count + 1)} />
 			<BaselinePicker baselines={baselines} band={band} onChange={setBand} />
-			<h2 className="mb-2 text-lg font-bold">Losses to forks</h2>
+			<h2 className={`mb-2 text-lg font-bold ${TONES.lost}`}>Losses to forks</h2>
 			{error && <p className="text-red-600 dark:text-red-400">{error}</p>}
 			{forks && <Forks player={player} forks={forks} baseline={baseline?.forks ?? null} />}
 			{pawnPushes && <PawnPushes pawnPushes={pawnPushes} baseline={baseline?.pawn_pushes ?? null} />}
 			{reasons && (
 				<ResultReasonsSection
 					title="Why games were lost"
+					tone="lost"
 					whose={player}
 					reasons={reasons.losses}
 					baseline={baseline?.reasons.losses ?? null}
@@ -298,6 +332,7 @@ export function Statistics({ player }: { player: string }) {
 			{reasons && (
 				<ResultReasonsSection
 					title="Why games were won"
+					tone="won"
 					whose="the opponent"
 					reasons={reasons.wins}
 					baseline={baseline?.reasons.wins ?? null}

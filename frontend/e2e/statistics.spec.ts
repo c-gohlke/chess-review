@@ -105,6 +105,29 @@ test("comparing with a baseline adds the baseline players' shares", async ({ pag
 	await expect(page.getByRole("row", { name: "Fork 40 25.0% 10.0%" })).toBeVisible();
 });
 
+test("a long table keeps its section title in view while scrolling", async ({ page }) => {
+	const tags = Array.from({ length: 40 }, (_, index) => ({ name: `Error ${index}`, games: 40 - index }));
+	await page.route("**/api/statistics/reasons?*", (route) =>
+		route.fulfill({ json: { ...REASONS, wins: { ...REASONS.wins, tags } } }),
+	);
+	await openStatistics(page, FORKS);
+
+	await page.getByRole("row", { name: /^Error 39 / }).scrollIntoViewIfNeeded();
+
+	const table = page.getByRole("table").filter({ has: page.getByRole("row", { name: /^Error 39 / }) });
+	await expect(table.getByRole("columnheader", { name: "Why games were won" })).toBeInViewport();
+	await expect(table.getByRole("columnheader", { name: "Errors in the game" })).toBeInViewport();
+	await expect(page.getByRole("row", { name: /^Error 0 / })).not.toBeInViewport();
+});
+
+test("reasons for wins are green and reasons for losses red", async ({ page }) => {
+	await openStatistics(page, FORKS);
+
+	await expect(page.getByRole("cell", { name: "Fork", exact: true })).toHaveClass(/text-green-700/);
+	await expect(page.getByRole("cell", { name: "Endgame error", exact: true })).toHaveClass(/text-red-700/);
+	await expect(page.getByRole("cell", { name: "Knight fork", exact: true })).toHaveClass(/text-red-700/);
+});
+
 test("shows why games were lost and won", async ({ page }) => {
 	await openStatistics(page, FORKS);
 
