@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import {
+	type BaselineStatistics,
+	type ForkKind,
 	type ForkSummary,
+	getBaselines,
 	getForkStatistics,
 	getPawnPushStatistics,
 	getReasonStatistics,
@@ -15,36 +18,103 @@ function percent(part: number, whole: number): string {
 	return `${((part / whole) * 100).toFixed(1)}%`;
 }
 
-function Forks({ player, forks }: { player: string; forks: ForkSummary }) {
+function bandLabel(band: number): string {
+	return `${band}–${band + 99}`;
+}
+
+// The same counts for the baseline players, to compare shares against.
+type Comparison = { counts: Map<string, number>; total: number } | null;
+
+function comparison(rows: { name: string; count: number }[], total: number): Comparison {
+	return { counts: new Map(rows.map((row) => [row.name, row.count])), total };
+}
+
+function BaselineNote({ part, whole }: { part: number; whole: number }) {
+	return <span className="text-gray-600 dark:text-gray-400"> · baseline {percent(part, whole)}</span>;
+}
+
+function ShareTable({
+	heading,
+	countHeading,
+	rows,
+	total,
+	baseline,
+}: {
+	heading: string;
+	countHeading: string;
+	rows: { name: string; count: number }[];
+	total: number;
+	baseline: Comparison;
+}) {
+	// Reasons only the baseline players had still show, at zero for the player.
+	const names = new Set(rows.map((row) => row.name));
+	const baselineOnly = [...(baseline?.counts.keys() ?? [])].filter((name) => !names.has(name));
+	const allRows = [...rows, ...baselineOnly.map((name) => ({ name, count: 0 }))];
+	return (
+		<table className="mt-4 w-full">
+			<thead>
+				<tr className="text-left text-sm text-gray-600 dark:text-gray-400">
+					<th className="py-1 font-normal">{heading}</th>
+					<th className="py-1 pl-3 text-right font-normal">{countHeading}</th>
+					<th className="py-1 pl-3 text-right font-normal">Share</th>
+					{baseline && <th className="py-1 pl-3 text-right font-normal">Baseline</th>}
+				</tr>
+			</thead>
+			<tbody>
+				{allRows.map((row) => (
+					<tr key={row.name} className="border-t">
+						<td className="py-2">{row.name}</td>
+						<td className="py-2 pl-3 text-right tabular-nums">{row.count}</td>
+						<td className="py-2 pl-3 text-right tabular-nums">{percent(row.count, total)}</td>
+						{baseline && (
+							<td className="py-2 pl-3 text-right tabular-nums text-gray-600 dark:text-gray-400">
+								{percent(baseline.counts.get(row.name) ?? 0, baseline.total)}
+							</td>
+						)}
+					</tr>
+				))}
+			</tbody>
+		</table>
+	);
+}
+
+function forkRows(kinds: ForkKind[]): { name: string; count: number }[] {
+	return kinds.map((kind) => ({ name: kind.name, count: kind.losses }));
+}
+
+function Forks({ player, forks, baseline }: { player: string; forks: ForkSummary; baseline: ForkSummary | null }) {
 	const total = forks.analysed_losses;
 	if (total === 0) return <p>{player}'s games have not been analysed yet.</p>;
+	const base = baseline?.analysed_losses ?? 0;
 	return (
 		<>
 			<p>
-				A fork figured in {forks.losses_with_fork} of {total} analysed losses ({percent(forks.losses_with_fork, total)}
-				).
+				A fork figured in {forks.losses_with_fork} of {total} analysed losses ({percent(forks.losses_with_fork, total)})
+				{baseline && <BaselineNote part={baseline.losses_with_fork} whole={base} />}.
 			</p>
 			<p className="mt-1">
-				It was the deciding error in {forks.decided_by_fork} ({percent(forks.decided_by_fork, total)}).
+				It was the deciding error in {forks.decided_by_fork} ({percent(forks.decided_by_fork, total)})
+				{baseline && <BaselineNote part={baseline.decided_by_fork} whole={base} />}.
 			</p>
-			<table className="mt-4 w-full">
-				<thead>
-					<tr className="text-left text-sm text-gray-600 dark:text-gray-400">
-						<th className="py-1 font-normal">Kind of fork</th>
-						<th className="py-1 text-right font-normal">Losses</th>
-						<th className="py-1 text-right font-normal">Share</th>
-					</tr>
-				</thead>
-				<tbody>
-					{forks.kinds.map((kind) => (
-						<tr key={kind.name} className="border-t">
-							<td className="py-2">{kind.name}</td>
-							<td className="py-2 text-right tabular-nums">{kind.losses}</td>
-							<td className="py-2 text-right tabular-nums">{percent(kind.losses, total)}</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
+			<ShareTable
+				heading="Kind of fork"
+				countHeading="Losses"
+				rows={forkRows(forks.kinds)}
+				total={total}
+				baseline={baseline && comparison(forkRows(baseline.kinds), base)}
+			/>
+			<p className="mt-4">
+				{player} missed a fork of their own in {forks.losses_with_missed_fork} (
+				{percent(forks.losses_with_missed_fork, total)})
+				{baseline && <BaselineNote part={baseline.losses_with_missed_fork} whole={base} />}.
+			</p>
+			<ShareTable
+				heading="Kind of fork missed"
+				countHeading="Losses"
+				rows={forkRows(forks.missed_kinds)}
+				total={total}
+				baseline={baseline && comparison(forkRows(baseline.missed_kinds), base)}
+			/>
 			<p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
 				A loss with two kinds of fork counts once under each kind.
 			</p>
@@ -57,12 +127,25 @@ const WINGS: [PawnPushSummary["counts"][number]["wing"], string][] = [
 	["kingside", "King side"],
 ];
 
-function PawnPushes({ pawnPushes }: { pawnPushes: PawnPushSummary }) {
+function pushCount(summary: PawnPushSummary, wing: string, timing: string): number {
+	return summary.counts.find((row) => row.wing === wing && row.timing === timing)?.games ?? 0;
+}
+
+function PawnPushes({ pawnPushes, baseline }: { pawnPushes: PawnPushSummary; baseline: PawnPushSummary | null }) {
 	const total = pawnPushes.analysed_games;
 	if (total === 0) return null;
 	const cell = (wing: string, timing: string) => {
-		const count = pawnPushes.counts.find((row) => row.wing === wing && row.timing === timing)?.games ?? 0;
-		return `${count} (${percent(count, total)})`;
+		const count = pushCount(pawnPushes, wing, timing);
+		return (
+			<>
+				{count} ({percent(count, total)})
+				{baseline && (
+					<div className="text-sm text-gray-600 dark:text-gray-400">
+						baseline {percent(pushCount(baseline, wing, timing), baseline.analysed_games)}
+					</div>
+				)}
+			</>
+		);
 	};
 	return (
 		<>
@@ -94,30 +177,21 @@ function PawnPushes({ pawnPushes }: { pawnPushes: PawnPushSummary }) {
 	);
 }
 
-function ReasonTable({ heading, counts, total }: { heading: string; counts: ReasonCount[]; total: number }) {
-	return (
-		<table className="mt-4 w-full">
-			<thead>
-				<tr className="text-left text-sm text-gray-600 dark:text-gray-400">
-					<th className="py-1 font-normal">{heading}</th>
-					<th className="py-1 text-right font-normal">Games</th>
-					<th className="py-1 text-right font-normal">Share</th>
-				</tr>
-			</thead>
-			<tbody>
-				{counts.map((count) => (
-					<tr key={count.name} className="border-t">
-						<td className="py-2">{count.name}</td>
-						<td className="py-2 text-right tabular-nums">{count.games}</td>
-						<td className="py-2 text-right tabular-nums">{percent(count.games, total)}</td>
-					</tr>
-				))}
-			</tbody>
-		</table>
-	);
+function reasonRows(counts: ReasonCount[]): { name: string; count: number }[] {
+	return counts.map((count) => ({ name: count.name, count: count.games }));
 }
 
-function ResultReasonsSection({ title, whose, reasons }: { title: string; whose: string; reasons: ResultReasons }) {
+function ResultReasonsSection({
+	title,
+	whose,
+	reasons,
+	baseline,
+}: {
+	title: string;
+	whose: string;
+	reasons: ResultReasons;
+	baseline: ResultReasons | null;
+}) {
 	if (reasons.games === 0) return null;
 	return (
 		<>
@@ -125,8 +199,20 @@ function ResultReasonsSection({ title, whose, reasons }: { title: string; whose:
 			<p>
 				The deciding error in each of {reasons.games} analysed games, and every error {whose} made in them.
 			</p>
-			<ReasonTable heading="Deciding error" counts={reasons.deciding} total={reasons.games} />
-			<ReasonTable heading="Errors in the game" counts={reasons.tags} total={reasons.games} />
+			<ShareTable
+				heading="Deciding error"
+				countHeading="Games"
+				rows={reasonRows(reasons.deciding)}
+				total={reasons.games}
+				baseline={baseline && comparison(reasonRows(baseline.deciding), baseline.games)}
+			/>
+			<ShareTable
+				heading="Errors in the game"
+				countHeading="Games"
+				rows={reasonRows(reasons.tags)}
+				total={reasons.games}
+				baseline={baseline && comparison(reasonRows(baseline.tags), baseline.games)}
+			/>
 			<p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
 				A game counts once under each kind of error in it, so these shares add up to more than 100%.
 			</p>
@@ -134,10 +220,41 @@ function ResultReasonsSection({ title, whose, reasons }: { title: string; whose:
 	);
 }
 
+function BaselinePicker({
+	baselines,
+	band,
+	onChange,
+}: {
+	baselines: BaselineStatistics[];
+	band: number | null;
+	onChange: (band: number | null) => void;
+}) {
+	if (baselines.length === 0) return null;
+	return (
+		<label className="mb-6 flex flex-col gap-1">
+			<span className="text-sm text-gray-600 dark:text-gray-400">Compare with</span>
+			<select
+				className="min-h-11 rounded border bg-transparent px-2"
+				value={band ?? ""}
+				onChange={(event) => onChange(event.target.value ? Number(event.target.value) : null)}
+			>
+				<option value="">Nobody</option>
+				{baselines.map((baseline) => (
+					<option key={baseline.band} value={baseline.band}>
+						Players rated {bandLabel(baseline.band)} ({baseline.games} rapid games)
+					</option>
+				))}
+			</select>
+		</label>
+	);
+}
+
 export function Statistics({ player }: { player: string }) {
 	const [forks, setForks] = useState<ForkSummary | null>(null);
 	const [pawnPushes, setPawnPushes] = useState<PawnPushSummary | null>(null);
 	const [reasons, setReasons] = useState<ReasonSummary | null>(null);
+	const [baselines, setBaselines] = useState<BaselineStatistics[]>([]);
+	const [band, setBand] = useState<number | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [runsFinished, setRunsFinished] = useState(0);
 
@@ -154,15 +271,38 @@ export function Statistics({ player }: { player: string }) {
 			.catch((err: Error) => setError(err.message));
 	}, [player, runsFinished]);
 
+	useEffect(() => {
+		getBaselines()
+			.then(setBaselines)
+			.catch((err: Error) => setError(err.message));
+	}, []);
+
+	const baseline = baselines.find((candidate) => candidate.band === band) ?? null;
+
 	return (
 		<section className="mx-auto w-full max-w-[600px]">
 			<EngineRun player={player} onFinished={() => setRunsFinished((count) => count + 1)} />
+			<BaselinePicker baselines={baselines} band={band} onChange={setBand} />
 			<h2 className="mb-2 text-lg font-bold">Losses to forks</h2>
 			{error && <p className="text-red-600 dark:text-red-400">{error}</p>}
-			{forks && <Forks player={player} forks={forks} />}
-			{pawnPushes && <PawnPushes pawnPushes={pawnPushes} />}
-			{reasons && <ResultReasonsSection title="Why games were lost" whose={player} reasons={reasons.losses} />}
-			{reasons && <ResultReasonsSection title="Why games were won" whose="the opponent" reasons={reasons.wins} />}
+			{forks && <Forks player={player} forks={forks} baseline={baseline?.forks ?? null} />}
+			{pawnPushes && <PawnPushes pawnPushes={pawnPushes} baseline={baseline?.pawn_pushes ?? null} />}
+			{reasons && (
+				<ResultReasonsSection
+					title="Why games were lost"
+					whose={player}
+					reasons={reasons.losses}
+					baseline={baseline?.reasons.losses ?? null}
+				/>
+			)}
+			{reasons && (
+				<ResultReasonsSection
+					title="Why games were won"
+					whose="the opponent"
+					reasons={reasons.wins}
+					baseline={baseline?.reasons.wins ?? null}
+				/>
+			)}
 		</section>
 	);
 }

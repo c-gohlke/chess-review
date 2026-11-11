@@ -194,6 +194,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/statistics/baselines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Baselines
+         * @description Every band that has been sampled; see importers/baseline.py.
+         */
+        get: operations["get_baselines_api_statistics_baselines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/analysis": {
         parameters: {
             query?: never;
@@ -253,6 +273,16 @@ export interface components {
             /** Running Player */
             running_player: string | null;
         };
+        /** BaselineStatistics */
+        BaselineStatistics: {
+            /** Band */
+            band: number;
+            /** Games */
+            games: number;
+            forks: components["schemas"]["ForkSummary"];
+            pawn_pushes: components["schemas"]["PawnPushSummary"];
+            reasons: components["schemas"]["ReasonSummary"];
+        };
         /**
          * Evaluation
          * @description From White's point of view. Exactly one of the two is set; mate 0 means the position is checkmate.
@@ -280,6 +310,10 @@ export interface components {
             decided_by_fork: number;
             /** Kinds */
             kinds: components["schemas"]["ForkKind"][];
+            /** Losses With Missed Fork */
+            losses_with_missed_fork: number;
+            /** Missed Kinds */
+            missed_kinds: components["schemas"]["ForkKind"][];
         };
         /** GameAnalysis */
         GameAnalysis: {
@@ -795,6 +829,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_baselines_api_statistics_baselines_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineStatistics"][];
                 };
             };
         };

@@ -14,6 +14,7 @@ from chess_review.db import (
     replace_game_reasons,
     replace_opponent_reasons,
 )
+from chess_review.importers.baseline import baseline_path
 from chess_review.patterns.forks import ForkKind, fork_label, summarize_forks
 from chess_review.patterns.pawn_pushes import PawnPushCount, summarize_pawn_pushes
 from chess_review.patterns.result_reasons import ReasonCount, ResultReasons, summarize_result_reasons
@@ -43,6 +44,23 @@ def test_summary_counts_each_loss_once_per_kind_and_most_common_first() -> None:
     assert summary.losses_with_fork == 2
     assert summary.decided_by_fork == 1
     assert summary.kinds == [ForkKind("Knight fork", 2), ForkKind("Pawn fork", 1)]
+    assert summary.losses_with_missed_fork == 1
+    assert summary.missed_kinds == [ForkKind("Queen fork", 1)]
+
+
+def test_missed_forks_count_each_loss_once_per_kind() -> None:
+    summary = summarize_forks(
+        [
+            reason("hanging_piece", "missed_fork_knight", "missed_fork_knight_royal"),
+            reason("endgame", "missed_fork_knight", "fork_bishop"),
+        ]
+    )
+
+    assert summary.losses_with_missed_fork == 2
+    assert summary.missed_kinds == [
+        ForkKind("Knight fork", 2),
+        ForkKind("Knight fork, royal (king and queen)", 1),
+    ]
 
 
 def test_statistics_only_count_that_players_analysed_losses(tmp_path: Path, game_1: Game, game_2: Game) -> None:
@@ -70,6 +88,8 @@ def test_statistics_only_count_that_players_analysed_losses(tmp_path: Path, game
         "losses_with_fork": 1,
         "decided_by_fork": 1,
         "kinds": [{"name": "Knight fork", "losses": 1}],
+        "losses_with_missed_fork": 0,
+        "missed_kinds": [],
     }
 
 
@@ -182,3 +202,33 @@ def test_reasons_endpoint_explains_losses_by_own_errors_and_wins_by_the_opponent
         "deciding": [{"name": "Fork", "games": 1}],
         "tags": [{"name": "Allowed a fork", "games": 1}],
     }
+
+
+def test_baselines_combine_every_sampled_player_of_each_sampled_band(
+    tmp_path: Path, game_1: Game, game_2: Game
+) -> None:
+    db_path = tmp_path / "db.sqlite3"
+    connect(db_path).close()
+    conn = connect(baseline_path(db_path, 1600))
+    carol_loss = replace(game_2, source_id="carol-loss", username="carol", white="carol", result=Result.LOSS)
+    insert_games(conn, [replace(game_1, result=Result.LOSS), carol_loss, replace(game_2, result=Result.WIN)])
+    replace_game_reasons(
+        conn,
+        [
+            GameReason(1, "fork", ["fork_knight", "kingside_pawns_early"]),
+            GameReason(2, "endgame", ["missed_fork_queen"]),
+            GameReason(3, "positional", []),
+        ],
+    )
+    replace_opponent_reasons(conn, [GameReason(3, "hanging_piece", ["hanging_piece"])])
+    conn.close()
+    client = TestClient(create_app(tmp_path, db_path, Path("stockfish")))
+
+    [baseline] = client.get("/api/statistics/baselines").json()
+
+    assert (baseline["band"], baseline["games"]) == (1600, 3)
+    assert baseline["forks"]["analysed_losses"] == 2
+    assert baseline["forks"]["kinds"] == [{"name": "Knight fork", "losses": 1}]
+    assert baseline["forks"]["missed_kinds"] == [{"name": "Queen fork", "losses": 1}]
+    assert baseline["pawn_pushes"]["counts"][2] == {"wing": "kingside", "timing": "early", "games": 1}
+    assert baseline["reasons"]["wins"]["deciding"] == [{"name": "Hung a piece", "games": 1}]

@@ -19,6 +19,8 @@ from chess_review.themes.classify import classify_games
 
 COUNTRY_API = "https://api.chess.com/pub/country"
 STATS_API = "https://api.chess.com/pub/player"
+# Lowest rating of each sampled band.
+BANDS = [1600, 1900]
 WIDTH = 100
 # A few games each, so no single player's habits dominate a band.
 GAMES_PER_PLAYER = 5
@@ -139,7 +141,7 @@ def main() -> None:
     analyse_parser = commands.add_parser("analyse")
     for command in (sample_parser, analyse_parser):
         command.add_argument("db_path", type=Path, help="the main database; the baseline is stored next to it")
-        command.add_argument("band", type=int, help="lowest rating of the band, e.g. 1600 for 1600-1699")
+        command.add_argument("band", type=int, choices=BANDS, help="lowest rating of the band, e.g. 1600 for 1600-1699")
     sample_parser.add_argument("--games", type=int, required=True)
     sample_parser.add_argument("--exclude", nargs="*", default=[], help="players never to sample, e.g. the app's own")
     analyse_parser.add_argument("stockfish_path", type=Path)
